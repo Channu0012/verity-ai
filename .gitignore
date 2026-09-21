@@ -1,0 +1,46 @@
+# Dependencies & Environment
+node_modules/
+.venv/
+venv/
+env/
+.env*
+API.text
+*.pem
+*.key
+
+# Next.js
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+
+# Databases & local storage
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+verity.db
+uploads/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Vercel
+.vercel
+
+# Submodules / Unused boilerplates
+next-app/

@@ -1,0 +1,498 @@
+# VERITY — TRD
+
+## Technical Requirements & System Architecture
+
+---
+
+# 1. SYSTEM ARCHITECTURE
+
+```text
+                    ┌─────────────────────┐
+                    │      NEXT.JS        │
+                    │      WEB APP        │
+                    └──────────┬──────────┘
+                               │
+                         HTTPS / API
+                               │
+                    ┌──────────▼──────────┐
+                    │       FASTAPI       │
+                    │    API GATEWAY      │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+              ▼                ▼                ▼
+        Auth Service     Research API      Project API
+              │                │                │
+              └────────────────┼────────────────┘
+                               ▼
+                    ┌─────────────────────┐
+                    │ RESEARCH ORCHESTRATOR│
+                    └──────────┬──────────┘
+                               │
+       ┌──────────┬────────────┼────────────┬───────────┐
+       ▼          ▼            ▼            ▼           ▼
+    Planner    Search       Retrieval     Evidence   Synthesis
+       │          │            │            │           │
+       └──────────┴────────────┴────────────┴───────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ PostgreSQL + pgvector│
+                    └─────────────────────┘
+```
+
+---
+
+# 2. FRONTEND
+
+Use:
+
+* Next.js
+* TypeScript
+* Tailwind
+* shadcn/ui
+* Lucide
+* Framer Motion where useful
+
+Structure:
+
+```text
+app/
+components/
+  ui/
+  research/
+  dashboard/
+  projects/
+  reports/
+lib/
+hooks/
+types/
+```
+
+---
+
+# 3. BACKEND
+
+FastAPI services:
+
+```text
+/api/auth
+/api/research
+/api/projects
+/api/sources
+/api/documents
+/api/reports
+/api/usage
+/api/admin
+/api/health
+```
+
+Use versioning:
+
+`/api/v1/...`
+
+---
+
+# 4. WORKER SYSTEM
+
+Long-running research must not block HTTP requests.
+
+```text
+API
+ ↓
+Job Queue
+ ↓
+Research Worker
+ ↓
+Pipeline
+ ↓
+Database
+ ↓
+Realtime status
+```
+
+Workers handle:
+
+* research
+* document ingestion
+* embedding
+* report generation
+* evaluation
+
+---
+
+# 5. API CONTRACT
+
+Research creation:
+
+```text
+POST /api/v1/research
+```
+
+Request:
+
+```json
+{
+  "project_id": "string",
+  "question": "string",
+  "mode": "quick|standard|deep"
+}
+```
+
+Response:
+
+```json
+{
+  "research_id": "string",
+  "status": "queued"
+}
+```
+
+Status:
+
+```text
+GET /api/v1/research/{id}
+```
+
+Report:
+
+```text
+GET /api/v1/research/{id}/report
+```
+
+Sources:
+
+```text
+GET /api/v1/research/{id}/sources
+```
+
+Evidence:
+
+```text
+GET /api/v1/research/{id}/evidence
+```
+
+---
+
+# 6. EVENT MODEL
+
+Use events for long-running research.
+
+Example:
+
+```text
+research.created
+research.planning
+research.searching
+research.ingesting
+research.retrieving
+research.analyzing
+research.verifying
+research.generating
+research.completed
+research.failed
+```
+
+Frontend subscribes to research status.
+
+---
+
+# 7. AGENT ORCHESTRATOR
+
+Use a deterministic workflow.
+
+```text
+ResearchRequest
+ ↓
+Planner
+ ↓
+TaskQueue
+ ↓
+Workers
+ ↓
+EvidenceStore
+ ↓
+Synthesis
+ ↓
+Verifier
+ ↓
+Evaluator
+```
+
+Agents cannot bypass authorization or tool permissions.
+
+---
+
+# 8. TOOL GATEWAY
+
+All external tools pass through:
+
+```text
+Tool Gateway
+```
+
+Responsibilities:
+
+* authorization
+* schema validation
+* timeout
+* retry
+* logging
+* rate limiting
+* output sanitization
+
+MCP tools integrate here.
+
+---
+
+# 9. MODEL GATEWAY
+
+All LLM calls pass through:
+
+```text
+Model Gateway
+```
+
+Responsibilities:
+
+* provider selection
+* model selection
+* fallback
+* retries
+* timeout
+* token accounting
+* cost estimation
+* structured output validation
+
+---
+
+# 10. DATABASE RULES
+
+Use:
+
+* UUID IDs
+* timestamps
+* foreign keys
+* indexes
+* migrations
+* soft deletion where appropriate
+
+Vector index must be optimized for the selected embedding dimensions.
+
+---
+
+# 11. FILE STORAGE
+
+Store raw uploaded files separately from database records.
+
+Database stores metadata.
+
+Storage stores file objects.
+
+Never place large binary files directly into PostgreSQL rows unnecessarily.
+
+---
+
+# 12. SECURITY ARCHITECTURE
+
+Secrets:
+
+```text
+Frontend
+   X
+API
+   ↓
+Secret Manager / Environment
+```
+
+Never expose:
+
+* OpenAI key
+* Gemini key
+* search API keys
+* database credentials
+
+to browser JavaScript.
+
+---
+
+# 13. TESTING
+
+### Unit
+
+Test:
+
+* parsers
+* retrieval
+* ranking
+* validators
+* claim extraction
+* citation logic
+
+### Integration
+
+Test:
+
+* database
+* API
+* AI provider
+* worker
+* storage
+
+### E2E
+
+Test:
+
+```text
+Signup
+→ Research
+→ Processing
+→ Report
+→ Evidence
+→ Export
+```
+
+### AI evaluation
+
+Use a fixed dataset.
+
+---
+
+# 14. CI/CD
+
+Pipeline:
+
+```text
+Git Push
+ ↓
+Lint
+ ↓
+Type Check
+ ↓
+Unit Tests
+ ↓
+Integration Tests
+ ↓
+Build
+ ↓
+Security Checks
+ ↓
+E2E
+ ↓
+Deploy Preview
+ ↓
+Production Approval
+ ↓
+Production Deploy
+```
+
+Production deployment must not occur when required checks fail.
+
+---
+
+# 15. ENVIRONMENT MANAGEMENT
+
+Separate:
+
+```text
+.env.local
+.env.test
+Production secrets
+```
+
+Required variables should be documented.
+
+Example categories:
+
+```text
+DATABASE_URL
+AUTH_SECRET
+OPENAI_API_KEY
+GEMINI_API_KEY
+SEARCH_API_KEY
+STORAGE credentials
+OBSERVABILITY credentials
+```
+
+Never commit `.env` secrets.
+
+---
+
+# 16. FAILURE HANDLING
+
+Every external dependency needs:
+
+* timeout
+* retry
+* exponential backoff
+* fallback
+* circuit-breaker strategy where appropriate
+
+If research partially succeeds, preserve completed evidence instead of destroying the entire job.
+
+---
+
+# 17. PERFORMANCE
+
+Use:
+
+* caching
+* streaming
+* asynchronous workers
+* database indexes
+* batched embeddings
+* retrieval limits
+* token budgets
+* lazy-loaded visualizations
+
+Measure before optimizing.
+
+---
+
+# 18. DEPLOYMENT
+
+Recommended:
+
+```text
+Frontend → Vercel
+Backend → Managed container/cloud service
+Database → Supabase PostgreSQL
+Workers → Managed compute
+Storage → Supabase/S3-compatible
+Monitoring → Sentry + metrics
+```
+
+The architecture must remain portable.
+
+---
+
+# 19. PRODUCTION HEALTH
+
+Expose:
+
+`/health`
+
+and where appropriate:
+
+`/ready`
+
+Health checks must verify critical dependencies without leaking secrets.
+
+---
+
+# 20. TECHNICAL EXIT CONDITION
+
+The system is technically ready only when:
+
+```text
+✓ Build passes
+✓ Types pass
+✓ Tests pass
+✓ Database migrations pass
+✓ E2E research passes
+✓ AI evaluation passes configured thresholds
+✓ Security checks pass
+✓ Production environment verified
+✓ Monitoring works
+✓ Rollback procedure tested/documented
+```

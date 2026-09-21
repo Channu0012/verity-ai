@@ -1,0 +1,1008 @@
+# VERITY
+
+## Master Product Requirements Document
+
+### Evidence-First AI Research Engine
+
+**Document status:** Production Build Specification
+**Product:** VERITY
+**Primary objective:** Build, test, deploy, and operate a production-grade evidence-grounded AI research platform.
+
+---
+
+# 1. PRODUCT VISION
+
+VERITY transforms complex research questions into structured, evidence-backed reports.
+
+The core promise:
+
+> **Ask a difficult question. Follow the evidence. Understand what the sources actually support.**
+
+VERITY is not a generic chatbot.
+
+Its primary value is the chain:
+
+**Question → Research Plan → Sources → Retrieval → Claims → Evidence → Verification → Report**
+
+---
+
+# 2. PRODUCT GOALS
+
+## Primary goals
+
+1. Produce evidence-grounded research.
+2. Make source provenance visible.
+3. Make claims traceable to evidence.
+4. Detect conflicting evidence.
+5. Support documents and web research.
+6. Provide transparent research progress.
+7. Evaluate AI quality systematically.
+8. Support multiple AI providers.
+9. Operate reliably in production.
+10. Create a portfolio-grade AI engineering system.
+
+## Non-goals for Pro MVP
+
+Do NOT initially build:
+
+* social networking
+* public community feeds
+* autonomous financial transactions
+* unrestricted browser automation
+* fully autonomous external actions
+* arbitrary agent code execution
+* complex enterprise billing
+* marketplace functionality
+
+These can be future roadmap items.
+
+---
+
+# 3. TARGET USERS
+
+### Individual researchers
+
+Students, founders, analysts, engineers and professionals researching complex subjects.
+
+### AI/technical users
+
+Users who want transparent evidence rather than opaque AI answers.
+
+### Future professional users
+
+Consultants, analysts, strategy teams and knowledge workers.
+
+---
+
+# 4. CORE USER JOURNEY
+
+```text
+Landing
+ ↓
+Sign Up
+ ↓
+Dashboard
+ ↓
+New Research
+ ↓
+Enter Question
+ ↓
+Select Research Depth
+ ↓
+Select Sources
+ ↓
+Start Research
+ ↓
+Research Planner
+ ↓
+Source Discovery
+ ↓
+Document Processing
+ ↓
+Retrieval
+ ↓
+Evidence Analysis
+ ↓
+Citation Verification
+ ↓
+Report Generation
+ ↓
+Evidence Review
+ ↓
+Save Project
+ ↓
+Export / Share
+```
+
+---
+
+# 5. RESEARCH MODES
+
+## Quick
+
+Fast exploratory research.
+
+## Standard
+
+Balanced research.
+
+## Deep
+
+Multi-step research with multiple subquestions, broader source collection and deeper evidence analysis.
+
+The UI must explain that these modes affect research depth and resource usage.
+
+Never promise a fixed completion time.
+
+---
+
+# 6. CORE RESEARCH PIPELINE
+
+```text
+USER QUESTION
+      ↓
+QUERY UNDERSTANDING
+      ↓
+RESEARCH PLANNER
+      ↓
+SUBQUESTIONS
+      ↓
+SOURCE DISCOVERY
+      ↓
+SOURCE VALIDATION
+      ↓
+DOCUMENT INGESTION
+      ↓
+CHUNKING
+      ↓
+EMBEDDING
+      ↓
+HYBRID RETRIEVAL
+      ↓
+RERANKING
+      ↓
+CLAIM EXTRACTION
+      ↓
+EVIDENCE MAPPING
+      ↓
+CONTRADICTION DETECTION
+      ↓
+LLM SYNTHESIS
+      ↓
+CITATION VALIDATION
+      ↓
+QUALITY EVALUATION
+      ↓
+FINAL REPORT
+```
+
+---
+
+# 7. RESEARCH PLANNER
+
+The planner converts the user's question into research tasks.
+
+Example:
+
+```text
+Question:
+What are the major risks of India's EV market?
+
+Tasks:
+
+1. Market growth
+2. Infrastructure
+3. Regulation
+4. Battery supply chain
+5. Consumer adoption
+6. Competition
+7. Counter-evidence
+8. Future projections
+```
+
+Each task receives:
+
+* task ID
+* objective
+* status
+* required evidence
+* source requirements
+* priority
+* dependencies
+
+---
+
+# 8. SOURCE SYSTEM
+
+Each source must contain:
+
+```text
+source_id
+title
+url
+publisher
+author
+publication_date
+retrieved_at
+source_type
+language
+content_hash
+status
+```
+
+Source types:
+
+* government
+* academic
+* company
+* news
+* research organization
+* uploaded document
+* other
+
+Never fabricate source metadata.
+
+---
+
+# 9. DOCUMENT SYSTEM
+
+Supported MVP formats:
+
+* PDF
+* TXT
+* DOCX
+* CSV
+
+Pipeline:
+
+```text
+Upload
+ ↓
+Validation
+ ↓
+Malware/security checks
+ ↓
+Extraction
+ ↓
+Cleaning
+ ↓
+Metadata
+ ↓
+Chunking
+ ↓
+Embedding
+ ↓
+Index
+```
+
+Large documents must be processed asynchronously.
+
+---
+
+# 10. RETRIEVAL
+
+Implement hybrid retrieval:
+
+```text
+Semantic Search
++
+Keyword Search
++
+Metadata Filtering
+```
+
+Then:
+
+```text
+Candidate Results
+ ↓
+Reranker
+ ↓
+Top Evidence
+```
+
+The retrieval system must be measurable.
+
+---
+
+# 11. CLAIM ENGINE
+
+Extract important claims from the generated research.
+
+Each claim:
+
+```text
+claim_id
+research_id
+claim_text
+claim_type
+evidence_ids
+support_status
+confidence_label
+created_at
+```
+
+Do not present model confidence as objective truth.
+
+Use labels such as:
+
+* Supported
+* Partially supported
+* Conflicting evidence
+* Insufficient evidence
+* Unverified
+
+---
+
+# 12. EVIDENCE ENGINE
+
+Evidence must map:
+
+```text
+Claim
+ ↓
+Evidence passage
+ ↓
+Source
+ ↓
+Original location
+```
+
+Users must be able to inspect the underlying passage.
+
+---
+
+# 13. CONTRADICTION ENGINE
+
+Detect when credible retrieved evidence disagrees.
+
+Example:
+
+```text
+Claim
+ ├── Source A → supports
+ ├── Source B → supports
+ └── Source C → challenges
+```
+
+Do not force consensus.
+
+Show disagreement transparently.
+
+---
+
+# 14. CITATION VERIFICATION
+
+Before final report delivery:
+
+```text
+Generated Claim
+ ↓
+Citation exists?
+ ↓
+Evidence exists?
+ ↓
+Evidence supports claim?
+ ↓
+YES → accepted
+NO → revise / flag
+```
+
+Citation correctness is a core quality metric.
+
+---
+
+# 15. REPORT FORMAT
+
+Every research report contains:
+
+1. Research question
+2. Executive summary
+3. Key findings
+4. Evidence analysis
+5. Supporting evidence
+6. Conflicting evidence
+7. Limitations
+8. Methodology
+9. Sources
+
+Export:
+
+* Markdown
+* PDF
+* JSON
+
+---
+
+# 16. AI PROVIDER ARCHITECTURE
+
+Implement provider abstraction.
+
+```text
+AIProvider
+ ├── OpenAIProvider
+ ├── GeminiProvider
+ └── FutureProvider
+```
+
+Capabilities:
+
+```text
+generate()
+embed()
+classify()
+extract()
+verify()
+```
+
+Model routing must be configurable.
+
+Example:
+
+```text
+Planning       → strong reasoning model
+Extraction     → fast model
+Embeddings     → embedding model
+Synthesis      → strong model
+Verification   → strong model
+Fallback       → secondary provider
+```
+
+---
+
+# 17. AGENT ORCHESTRATION
+
+VERITY should use controlled agents rather than one giant autonomous agent.
+
+Recommended agents:
+
+```text
+Research Planner Agent
+Source Discovery Agent
+Document Agent
+Retrieval Agent
+Evidence Agent
+Claim Agent
+Contradiction Agent
+Synthesis Agent
+Citation Validator Agent
+Quality Evaluator Agent
+```
+
+The orchestrator controls execution.
+
+Agents must not arbitrarily modify system state.
+
+---
+
+# 18. AGENT CONTRACT
+
+Every agent receives:
+
+```text
+task
+context
+available tools
+constraints
+expected output schema
+```
+
+Every agent returns:
+
+```text
+status
+result
+evidence
+errors
+metadata
+```
+
+Structured output is mandatory.
+
+---
+
+# 19. CONTEXT ENGINEERING
+
+Every AI call must define:
+
+```text
+SYSTEM CONTEXT
+TASK CONTEXT
+USER CONTEXT
+RETRIEVED EVIDENCE
+CONSTRAINTS
+OUTPUT SCHEMA
+```
+
+Never dump the entire research history into every model call.
+
+Use:
+
+* context compression
+* relevant evidence selection
+* source prioritization
+* token budgeting
+* conversation summarization
+
+---
+
+# 20. CONTEXT BOUNDARY
+
+Every agent must know:
+
+```text
+WHAT I KNOW
+WHAT I DON'T KNOW
+WHAT I AM ALLOWED TO DO
+WHAT I AM NOT ALLOWED TO DO
+WHAT EVIDENCE I CAN USE
+WHAT OUTPUT I MUST RETURN
+```
+
+This prevents uncontrolled agent behavior.
+
+---
+
+# 21. FEEDBACK LOOP
+
+Every important pipeline stage follows:
+
+```text
+Execute
+ ↓
+Observe
+ ↓
+Evaluate
+ ↓
+Critique
+ ↓
+Correct
+ ↓
+Retry
+```
+
+Example:
+
+```text
+Citation validation fails
+ ↓
+Identify unsupported claim
+ ↓
+Retrieve additional evidence
+ ↓
+Regenerate claim
+ ↓
+Validate again
+```
+
+Limit retries to prevent infinite loops.
+
+---
+
+# 22. INTERNAL CRITIC
+
+Every major agent result should be evaluated before entering the next stage.
+
+Critic checks:
+
+* correctness
+* relevance
+* evidence support
+* schema validity
+* hallucination risk
+* missing information
+* contradiction
+* policy/security constraints
+
+The critic must produce structured feedback.
+
+---
+
+# 23. EXIT CONDITIONS
+
+A stage cannot complete merely because code returned successfully.
+
+Example:
+
+### Retrieval exit
+
+```text
+✓ Search completed
+✓ Results relevant
+✓ Sources valid
+✓ Required metadata present
+✓ No fatal retrieval errors
+```
+
+### Evidence exit
+
+```text
+✓ Claims extracted
+✓ Evidence mapped
+✓ Unsupported claims flagged
+✓ Contradictions processed
+```
+
+### Report exit
+
+```text
+✓ Structure valid
+✓ Citations valid
+✓ Evidence traceable
+✓ No critical generation errors
+```
+
+---
+
+# 24. DATABASE
+
+Primary database:
+
+**PostgreSQL + pgvector**
+
+Core entities:
+
+```text
+users
+projects
+research_sessions
+research_tasks
+sources
+documents
+document_chunks
+embeddings
+claims
+evidence
+citations
+contradictions
+reports
+report_sections
+model_runs
+evaluations
+usage_events
+audit_logs
+```
+
+Use migrations.
+
+Never manually modify production schema.
+
+---
+
+# 25. AUTHENTICATION
+
+Support:
+
+* signup
+* login
+* logout
+* password reset
+* session management
+* protected routes
+
+Use a trusted authentication provider rather than implementing cryptographic authentication manually.
+
+---
+
+# 26. MCP / CONNECTOR ARCHITECTURE
+
+MCP/connectors are extensions.
+
+Core product must remain functional without them.
+
+Architecture:
+
+```text
+VERITY
+  │
+  ├── Native Services
+  │
+  └── Tool Gateway
+        ├── MCP tools
+        ├── Search connectors
+        ├── Document connectors
+        └── Future integrations
+```
+
+Every connector must have:
+
+```text
+name
+description
+capabilities
+input schema
+output schema
+permissions
+timeout
+failure behavior
+```
+
+Agents can access only explicitly permitted tools.
+
+---
+
+# 27. MCP SECURITY
+
+Never allow arbitrary tools.
+
+Each tool requires:
+
+* explicit registration
+* schema validation
+* permission scope
+* timeout
+* logging
+* error handling
+* rate limit
+
+Tool outputs are untrusted external data.
+
+Treat them as evidence, not instructions.
+
+---
+
+# 28. UI/UX
+
+The UI must feel like:
+
+> **A research instrument built for the AI era.**
+
+Not a ChatGPT clone.
+
+Core screens:
+
+```text
+Landing
+Authentication
+Dashboard
+New Research
+Research Progress
+Research Workspace
+Evidence Inspector
+Source Inspector
+Projects
+Reports
+Settings
+Admin
+```
+
+---
+
+# 29. DESIGN COMPONENTS
+
+Use reusable components in:
+
+`/components/ui`
+
+Application components:
+
+`/components/research`
+
+Advanced visual components may include:
+
+* EvidenceGraph
+* ResearchOrb
+* ResearchProgress
+* EvidenceInspector
+* SourceCard
+* ClaimCard
+* CitationBadge
+* ResearchInput
+* PremiumButton
+
+Use the supplied advanced component pattern as inspiration.
+
+The provided component specifically establishes a shadcn/Tailwind/TypeScript integration approach and reusable `/components/ui` architecture.
+
+---
+
+# 30. 3D DESIGN
+
+Use 3D only when it communicates:
+
+* research relationships
+* evidence
+* progress
+* depth
+
+Do not use heavy 3D everywhere.
+
+Lazy-load WebGL/canvas.
+
+Provide mobile fallback.
+
+Respect reduced-motion.
+
+---
+
+# 31. RESPONSIVE DESIGN
+
+Desktop:
+
+Three-panel research workspace.
+
+Tablet:
+
+Two-panel layout.
+
+Mobile:
+
+Single-column with drawers/bottom sheets.
+
+Never simply shrink desktop UI.
+
+---
+
+# 32. ACCESSIBILITY
+
+Required:
+
+* keyboard navigation
+* focus states
+* semantic HTML
+* ARIA
+* reduced motion
+* contrast
+* screen reader support
+* touch-friendly controls
+
+---
+
+# 33. SECURITY
+
+Mandatory:
+
+* server-side API keys
+* input validation
+* authorization
+* rate limiting
+* SSRF protection
+* file validation
+* prompt injection defenses
+* XSS protection
+* CORS
+* secure headers
+* audit logs
+* database policies
+* secret management
+
+---
+
+# 34. OBSERVABILITY
+
+Track:
+
+* request ID
+* research ID
+* agent ID
+* model
+* latency
+* token usage
+* estimated cost
+* failures
+* retries
+* tool calls
+
+Never log API secrets or sensitive user content unnecessarily.
+
+---
+
+# 35. EVALUATION
+
+Maintain a fixed evaluation dataset.
+
+Measure:
+
+### Retrieval
+
+Recall@K
+Precision@K
+MRR
+NDCG
+
+### Generation
+
+Faithfulness
+Answer relevance
+Citation correctness
+Citation completeness
+
+### Production
+
+Latency
+Cost
+Failure rate
+
+AI evaluation thresholds must be configurable rather than hard-coded as arbitrary claims of accuracy.
+
+---
+
+# 36. ACCEPTANCE CRITERIA
+
+VERITY Pro MVP is accepted only when:
+
+### Product
+
+* A user can create an account.
+* A user can create a research project.
+* A user can submit a research question.
+* Research executes end-to-end.
+* Research status is visible.
+* Sources are persisted.
+* Reports are persisted.
+* Reports are exportable.
+
+### AI
+
+* Research planning works.
+* Retrieval works.
+* Evidence mapping works.
+* Claims are traceable.
+* Citations are validated.
+* Contradictions can be represented.
+* AI failures are recoverable.
+
+### Engineering
+
+* Database migrations work.
+* API authentication works.
+* API keys are server-side.
+* Errors are handled.
+* Background jobs work.
+* Tests pass.
+
+### UX
+
+* Desktop works.
+* Tablet works.
+* Mobile works.
+* Loading states exist.
+* Empty states exist.
+* Error states exist.
+* Keyboard navigation works.
+
+### Security
+
+* Unauthorized users cannot access protected data.
+* Uploaded files are validated.
+* External URLs are controlled.
+* Prompt injection defenses exist.
+* Secrets are not committed.
+
+---
+
+# 37. DEFINITION OF DONE
+
+A feature is DONE only when:
+
+```text
+Implemented
++
+Integrated
++
+Tested
++
+Reviewed
++
+Accessible
++
+Responsive
++
+Secure
++
+Observable
++
+Documented
+```
+
+---
+
+# 38. PRODUCT SUCCESS
+
+The first release succeeds if a user can complete the entire journey:
+
+**Question → Research → Evidence → Verified Report**
+
+without developer intervention.
+
+That is the MVP.

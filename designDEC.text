@@ -1,0 +1,258 @@
+# VERITY — DESIGN DECISION DOCUMENT
+
+## Product Design + UX Architecture
+
+---
+
+# 1. DESIGN NORTH STAR
+
+VERITY should feel like:
+
+> **A precision research instrument.**
+
+Not:
+
+* another chatbot
+* another SaaS dashboard
+* another AI landing page
+
+---
+
+# 2. DESIGN PRINCIPLES
+
+### Evidence first
+
+Visual hierarchy should prioritize evidence.
+
+### Calm intelligence
+
+Avoid visual noise.
+
+### Progressive disclosure
+
+Advanced information appears when needed.
+
+### Depth with purpose
+
+3D represents relationships and research depth.
+
+### Motion communicates state
+
+Animations must explain what is happening.
+
+### Trust through transparency
+
+Sources and evidence should never feel hidden.
+
+---
+
+# 3. VISUAL SYSTEM
+
+### Base
+
+Deep neutral surfaces with high-contrast typography.
+
+### Accent
+
+Use one recognizable Verity accent rather than rainbow gradients.
+
+### Cards
+
+Use subtle depth.
+
+### Borders
+
+Low-contrast borders.
+
+### Typography
+
+Editorial, technical, highly readable.
+
+---
+
+# 4. SIGNATURE VISUAL
+
+## Evidence Universe
+
+A subtle interactive network representing:
+
+```text
+Question
+Claims
+Evidence
+Sources
+```
+
+Nodes should react gently to pointer movement.
+
+Clicking a node opens relevant research information.
+
+This becomes Verity's visual identity.
+
+---
+
+# 5. PREMIUM COMPONENTS
+
+Use the supplied premium interaction approach for high-value CTAs.
+
+The supplied Liquid Metal Button includes hover/press states, shader rendering, ripple feedback, configurable text/icon modes, and `@paper-design/shaders` integration.
+Use it selectively for:
+
+* Start Research
+* Create Project
+* primary landing CTA
+
+Do not use it on every button.
+
+Dependencies identified by the supplied component:
+
+```text
+clsx
+lucide-react
+tailwind-merge
+@paper-design/shaders
+```
+
+These are explicitly listed in the supplied component instructions.
+
+---
+
+# 6. INTERACTION SYSTEM
+
+Buttons:
+
+hover → lift
+press → compression
+success → confirmation
+
+Research:
+
+queued → planning → searching → analyzing → verifying → complete
+
+Citation:
+
+hover → source preview
+click → evidence inspector
+
+Claim:
+
+hover → evidence highlight
+click → source mapping
+
+---
+
+# 7. MOTION RULES
+
+Fast:
+
+micro-interactions
+
+Medium:
+
+panel transitions
+
+Slow:
+
+background / ambient effects
+
+Never animate large areas unnecessarily.
+
+Respect reduced motion.
+
+---
+
+# 8. RESPONSIVE DECISION
+
+### Desktop
+
+Three-column research environment.
+
+### Tablet
+
+Two-column.
+
+### Mobile
+
+Single-column.
+
+Evidence becomes a bottom sheet or drawer.
+
+---
+
+# 9. INFORMATION ARCHITECTURE
+
+```text
+VERITY
+│
+├── Dashboard
+├── Research
+│   ├── New
+│   ├── Active
+│   └── History
+├── Projects
+├── Sources
+├── Reports
+├── Settings
+└── Admin
+```
+
+---
+
+# 10. UX STATES
+
+Every screen must support:
+
+* loading
+* empty
+* success
+* error
+* offline
+* permission denied
+* partial completion
+
+Never leave users staring at blank screens.
+
+---
+
+# 11. DESIGN QA
+
+For every page inspect:
+
+```text
+Hierarchy
+Spacing
+Typography
+Contrast
+Consistency
+Interaction
+Motion
+Responsiveness
+Accessibility
+Performance
+```
+
+---
+
+# 12. DESIGN ACCEPTANCE
+
+The design is accepted only when:
+
+* It doesn't resemble a generic AI template.
+* Research is visually understandable.
+* Evidence is easy to inspect.
+* Citations are discoverable.
+* 3D is purposeful.
+* Mobile UX remains excellent.
+* Accessibility isn't sacrificed.
+* Motion doesn't interfere with reading.
+* Core workflows are faster, not slower, because of the design.
+
+---
+
+# 13. FINAL DESIGN PRINCIPLE
+
+The interface should communicate one idea repeatedly:
+
+> **Don't trust the answer blindly. Follow the evidence.**
+
+That is the identity of VERITY.
