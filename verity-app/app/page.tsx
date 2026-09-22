@@ -150,66 +150,48 @@ export default function HomePage() {
         {/* Direct native HD video canvas with watermark shield */}
         <HeroVideoBackground />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-8 pb-16">
-          {/* Status Badge */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-16 pb-20 flex flex-col items-center justify-center">
+          {/* Futuristic Status Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sky-400/25 bg-sky-500/[0.1] backdrop-blur-xl text-sky-300 text-xs font-mono tracking-widest uppercase mb-8 shadow-[0_0_30px_rgba(56,189,248,0.15)]"
+            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-sky-400/30 bg-black/50 backdrop-blur-2xl text-sky-300 text-xs font-mono tracking-widest uppercase mb-16 shadow-[0_0_35px_rgba(56,189,248,0.25)]"
           >
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-            <Crosshair className="w-3.5 h-3.5 text-sky-400" />
-            <span>Autonomous Evidence Intelligence · Zero Hallucinated Citations</span>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+            </span>
+            <span className="font-semibold text-white/90">VERITY INTELLIGENCE</span>
+            <span className="text-white/30">|</span>
+            <span className="text-sky-300">AUTONOMOUS EVIDENCE ENGINE</span>
           </motion.div>
 
-          {/* Master Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.7 }}
-            className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.04] mb-8 select-none"
-          >
-            Don&apos;t trust the answer.
-            <br />
-            <span className="bg-gradient-to-r from-sky-300 via-cyan-200 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(56,189,248,0.3)]">
-              Follow the evidence.
-            </span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-            className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-light"
-          >
-            The autonomous factuality engine for high-stakes decisions. Extracts verbatim passages from peer-reviewed literature, cross-audits empirical discrepancies, and guarantees every citation.
-          </motion.p>
-
-          {/* Clean Million-Dollar Action Deck (No Clutter on Video) */}
+          {/* Crazy Futuristic Action Deck Floating over Video */}
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.7 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14"
+            transition={{ delay: 0.25, duration: 0.7 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-14 w-full max-w-md sm:max-w-none"
           >
-            <Link href="/dashboard/research/new">
-              <Button
-                size="lg"
-                className="h-14 px-8 rounded-2xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-base shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-3"
-              >
-                <Sparkles className="w-5 h-5 text-black" />
-                <span>Start Autonomous Research</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
+            <Link href="/dashboard/research/new" className="w-full sm:w-auto">
+              <div className="relative group p-[2px] rounded-2xl overflow-hidden bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 shadow-[0_0_40px_rgba(56,189,248,0.45)] hover:shadow-[0_0_75px_rgba(56,189,248,0.75)] transition-all duration-300 hover:scale-[1.03] active:scale-95 cursor-pointer">
+                <div className="relative px-9 py-4 rounded-[14px] bg-gradient-to-b from-black/90 to-slate-950/95 backdrop-blur-2xl flex items-center justify-center gap-3.5 text-white font-bold text-base tracking-wide overflow-hidden">
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                  <Sparkles className="w-5 h-5 text-sky-400 animate-pulse" />
+                  <span className="bg-gradient-to-r from-white via-sky-100 to-cyan-200 bg-clip-text text-transparent font-semibold">
+                    Launch Autonomous Studio
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-sky-400 transition-transform duration-300 group-hover:translate-x-1" />
+                </div>
+              </div>
             </Link>
 
-            <a href="#studio">
+            <a href="#studio" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 px-8 rounded-2xl border-white/20 bg-black/40 hover:bg-white/10 text-white font-medium text-base backdrop-blur-xl transition-all hover:border-sky-400/50 flex items-center gap-2.5"
+                className="w-full sm:w-auto h-[54px] px-8 rounded-2xl border-white/20 hover:border-sky-400/60 bg-black/50 hover:bg-white/[0.08] text-white/90 hover:text-white font-medium text-base backdrop-blur-2xl transition-all duration-300 hover:shadow-[0_0_35px_rgba(56,189,248,0.25)] flex items-center justify-center gap-2.5 active:scale-95 cursor-pointer"
               >
                 <Search className="w-4 h-4 text-sky-400" />
                 <span>Explore Research Console</span>
@@ -221,8 +203,8 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 rounded-2xl border border-white/[0.08] bg-black/40 backdrop-blur-xl text-xs text-white/60 font-mono"
+            transition={{ delay: 0.45, duration: 0.8 }}
+            className="inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 rounded-2xl border border-white/[0.12] bg-black/40 backdrop-blur-2xl text-xs text-white/70 font-mono shadow-[0_0_30px_rgba(0,0,0,0.5)]"
           >
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />

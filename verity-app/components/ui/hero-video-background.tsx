@@ -30,22 +30,22 @@ export function HeroVideoBackground() {
         playsInline
         preload="auto"
         onLoadedData={() => setIsLoaded(true)}
-        className={`absolute inset-0 w-full h-full object-cover scale-[1.08] transition-opacity duration-1000 ${
-          isLoaded ? "opacity-90" : "opacity-0"
+        className={`absolute inset-0 w-full h-full object-cover scale-[1.04] transition-opacity duration-1000 ${
+          isLoaded ? "opacity-100" : "opacity-0"
         }`}
         style={{
-          filter: "contrast(1.1) brightness(0.95)",
+          filter: "contrast(1.1) brightness(1.05) saturate(1.1)",
         }}
       />
 
-      {/* Top ambient navigation fade */}
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black via-black/80 to-transparent" />
+      {/* Top subtle ambient navigation fade */}
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
 
-      {/* Radial center glow focusing eye on the accretion disk */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.65)_85%,#000000_100%)]" />
+      {/* Soft cinematic vignette keeping center cosmic disk ultra-clear */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.35)_85%,#000000_100%)]" />
 
       {/* Bottom seamless blend into next sections */}
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/90 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black via-black/80 to-transparent" />
 
       {/* Bottom-right watermark eraser gradient (erases any AI watermark seamlessly) */}
       <div className="absolute bottom-0 right-0 w-44 h-24 bg-gradient-to-tl from-black via-black/95 to-transparent z-10" />
