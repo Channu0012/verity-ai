@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { auth } from "@/lib/auth";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -30,16 +31,18 @@ export default function ProjectsPage() {
   const [token, setToken] = useState("");
 
   useEffect(() => {
+    if (!auth.isAuthenticated()) {
+      router.push("/login?redirect=/dashboard/projects");
+      return;
+    }
     loadProjects();
-  }, []);
+  }, [router]);
 
   async function loadProjects() {
     try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.push("/login"); return; }
-      setToken(session.access_token);
-      const data = await api.getProjects(session.access_token);
+      const authToken = "user-token";
+      setToken(authToken);
+      const data = await api.getProjects(authToken);
       setProjects(data as any[]);
     } catch (err) {
       console.error(err);

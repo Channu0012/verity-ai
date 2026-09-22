@@ -5,15 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  BookOpen, Plus, Search, FolderOpen, FileText, Clock, TrendingUp,
-  ArrowRight, LogOut, Settings, BarChart3, Sparkles, Loader2,
+  BookOpen, Plus, Search, FolderOpen, FileText, Clock,
+  ArrowRight, LogOut, Settings, Sparkles, User, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase";
+import { auth, type AuthUser } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { VerityBrandLogo } from "@/components/ui/verity-logo";
 
@@ -50,31 +50,28 @@ const statusColors: Record<string, string> = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [research, setResearch] = useState<Research[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // Enforce auth check on client
+    if (!auth.isAuthenticated()) {
+      router.push("/login?redirect=/dashboard");
+      return;
+    }
+    const usr = auth.getUser();
+    setCurrentUser(usr);
     loadData();
   }, []);
 
   async function loadData() {
     try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-
-      setUser(session.user);
-
-      const token = session.access_token;
       const [projectsData, researchData] = await Promise.allSettled([
-        api.getProjects(token),
-        api.listResearch(token),
+        api.getProjects("user-token"),
+        api.listResearch("user-token"),
       ]);
 
       if (projectsData.status === "fulfilled") {
@@ -90,21 +87,21 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
+  function handleLogout() {
+    auth.signOut();
+    router.push("/login");
+    router.refresh();
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <Skeleton className="h-12 w-64" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
+      <div className="min-h-screen bg-background p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+          <Skeleton className="h-12 w-48 sm:w-64" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <Skeleton className="h-28 sm:h-32" />
+            <Skeleton className="h-28 sm:h-32" />
+            <Skeleton className="h-28 sm:h-32" />
           </div>
           <Skeleton className="h-64" />
         </div>
@@ -113,15 +110,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top Bar */}
       <nav className="border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-lg z-40">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <VerityBrandLogo size={28} href="/dashboard" />
-            <Separator orientation="vertical" className="h-6" />
-            <div className="hidden md:flex items-center gap-4 text-sm">
-              <Link href="/dashboard" className="font-medium text-foreground">
+            <Separator orientation="vertical" className="h-5 hidden sm:block" />
+            <div className="hidden md:flex items-center gap-4 text-xs sm:text-sm">
+              <Link href="/dashboard" className="font-semibold text-foreground">
                 Dashboard
               </Link>
               <Link href="/dashboard/projects" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -130,26 +127,88 @@ export default function DashboardPage() {
               <Link href="/dashboard/reports" className="text-muted-foreground hover:text-foreground transition-colors">
                 Reports
               </Link>
-              <Link href="/dashboard/admin" className="text-muted-foreground hover:text-foreground transition-colors">
-                Admin
+              <Link href="/dashboard/settings" className="text-muted-foreground hover:text-foreground transition-colors">
+                Settings
               </Link>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <Link href="/dashboard/settings">
-              <Button variant="ghost" size="icon">
-                <Settings className="w-4 h-4" />
+            <Link href="/dashboard/research/new">
+              <Button size="sm" className="gap-1.5 text-xs bg-sky-500 hover:bg-sky-400 text-black font-semibold h-8 sm:h-9">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New Research</span>
+                <span className="sm:hidden">New</span>
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-xs text-muted-foreground hover:text-red-400 h-8 sm:h-9 px-2 sm:px-3 gap-1.5"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Sign Out</span>
             </Button>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-1.5 text-muted-foreground hover:text-foreground rounded-lg"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl px-4 py-3 space-y-2">
+            <div className="pb-2 mb-2 border-b border-border/30 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Signed in as <strong className="text-foreground">{currentUser?.full_name || currentUser?.email}</strong></span>
+            </div>
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-semibold text-primary"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/projects"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              Projects
+            </Link>
+            <Link
+              href="/dashboard/reports"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              Reports
+            </Link>
+            <Link
+              href="/dashboard/settings"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full text-left py-2 text-sm text-red-400 hover:text-red-300 flex items-center gap-2 pt-2 border-t border-border/30"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
+        )}
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Welcome */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -157,34 +216,34 @@ export default function DashboardPage() {
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold">
-              Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""}
+            <h1 className="text-xl sm:text-2xl font-bold">
+              Welcome, {currentUser?.full_name || "Researcher"}
             </h1>
-            <p className="text-muted-foreground">Your evidence-first research workspace</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Your evidence-first research workspace</p>
           </div>
           <Link href="/dashboard/research/new">
-            <Button className="verity-glow">
+            <Button className="bg-sky-500 hover:bg-sky-400 text-black font-semibold shadow-[0_0_20px_rgba(56,189,248,0.2)]">
               <Plus className="w-4 h-4 mr-2" />
-              New Research
+              New Research Session
             </Button>
           </Link>
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { icon: FolderOpen, label: "Projects", value: projects.length, color: "text-blue-400" },
             { icon: Search, label: "Research Sessions", value: research.length, color: "text-purple-400" },
-            { icon: FileText, label: "Completed", value: research.filter(r => r.status === "completed").length, color: "text-emerald-400" },
+            { icon: FileText, label: "Completed Reports", value: research.filter(r => r.status === "completed").length, color: "text-emerald-400" },
           ].map((stat) => (
-            <Card key={stat.label} className="glass">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Card key={stat.label} className="bg-card/40 border-border/50 backdrop-blur-sm">
+              <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               </CardContent>
             </Card>
@@ -192,55 +251,53 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Research */}
-        <Card className="glass">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Research</CardTitle>
-            {research.length > 0 && (
-              <Link href="/dashboard/research">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            )}
+        <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Recent Research Sessions</CardTitle>
+            <Link href="/dashboard/research/new">
+              <Button variant="ghost" size="sm" className="text-xs gap-1">
+                New <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             {research.length === 0 ? (
-              <div className="text-center py-12">
-                <Search className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No research yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Start your first evidence-based research session.
+              <div className="text-center py-10 sm:py-12">
+                <Search className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-muted-foreground/30 mb-3" />
+                <h3 className="text-base sm:text-lg font-medium mb-1">No research yet</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-5">
+                  Launch your first evidence-backed deep research investigation.
                 </p>
                 <Link href="/dashboard/research/new">
-                  <Button>
-                    <Sparkles className="w-4 h-4 mr-2" />
+                  <Button size="sm" className="bg-sky-500 hover:bg-sky-400 text-black font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 mr-2" />
                     Start Research
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                {research.slice(0, 5).map((r) => (
+              <div className="space-y-2.5 sm:space-y-3">
+                {research.slice(0, 6).map((r) => (
                   <Link
                     key={r.id}
                     href={`/dashboard/research/${r.id}`}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 hover:bg-accent/50 transition-all group"
+                    className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-white/[0.02] transition-all group gap-3"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate group-hover:text-primary transition-colors">
+                      <div className="text-xs sm:text-sm font-medium truncate group-hover:text-primary transition-colors">
                         {r.question}
                       </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <Badge variant="outline" className="text-xs">
+                      <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                        <Badge variant="outline" className="text-[10px] capitalize">
                           {r.mode}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">
                           <Clock className="w-3 h-3 inline mr-1" />
                           {new Date(r.created_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
-                    <Badge className={statusColors[r.status] || "bg-muted text-muted-foreground"}>
+                    <Badge className={`text-[10px] sm:text-xs shrink-0 ${statusColors[r.status] || "bg-muted text-muted-foreground"}`}>
                       {r.status}
                     </Badge>
                   </Link>
@@ -251,36 +308,36 @@ export default function DashboardPage() {
         </Card>
 
         {/* Projects */}
-        <Card className="glass">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Projects</CardTitle>
+        <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Research Projects</CardTitle>
             <Link href="/dashboard/projects">
-              <Button variant="ghost" size="sm">
-                View All <ArrowRight className="w-4 h-4 ml-1" />
+              <Button variant="ghost" size="sm" className="text-xs gap-1">
+                View All <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             {projects.length === 0 ? (
               <div className="text-center py-8">
-                <FolderOpen className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground text-sm">No projects yet. Create one to organize your research.</p>
+                <FolderOpen className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-muted-foreground text-xs sm:text-sm">No projects yet. Create one to organize your research.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {projects.slice(0, 6).map((p) => (
                   <Link key={p.id} href={`/dashboard/projects/${p.id}`}>
-                    <Card className="hover:border-primary/30 transition-all hover:-translate-y-0.5 cursor-pointer h-full">
+                    <Card className="bg-card/30 hover:border-primary/40 transition-all hover:-translate-y-0.5 cursor-pointer h-full border-border/40">
                       <CardContent className="p-4">
-                        <h3 className="font-medium mb-1">{p.name}</h3>
+                        <h3 className="text-sm font-semibold mb-1 truncate">{p.name}</h3>
                         {p.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
                             {p.description}
                           </p>
                         )}
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Search className="w-3 h-3" />
-                          {p.research_count} research sessions
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Search className="w-3 h-3 text-sky-400" />
+                          <span>{p.research_count} research sessions</span>
                         </div>
                       </CardContent>
                     </Card>

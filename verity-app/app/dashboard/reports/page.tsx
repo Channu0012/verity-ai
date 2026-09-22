@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { auth } from "@/lib/auth";
 
 interface ReportItem {
   id: string;
@@ -38,16 +39,16 @@ export default function ReportsPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!auth.isAuthenticated()) {
+      router.push("/login?redirect=/dashboard/reports");
+      return;
+    }
+
     async function fetchReports() {
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          router.push("/login");
-          return;
-        }
-        setToken(session.access_token);
-        const data = await api.getReports(session.access_token);
+        const authToken = "user-token";
+        setToken(authToken);
+        const data = await api.getReports(authToken);
         setReports(data as ReportItem[]);
       } catch (err) {
         console.error("Failed to load reports:", err);

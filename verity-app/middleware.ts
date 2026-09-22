@@ -1,62 +1,32 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const { pathname } = request.nextUrl
 
-  // If Supabase credentials are not configured, allow local development exploration
-  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder') || supabaseUrl.trim() === '') {
-    return NextResponse.next({ request })
+  // Check for session cookie
+  const veritySession = request.cookies.get('verity_session')?.value
+  const hasSupabaseCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-') && c.name.endsWith('-auth-token'))
+  const isAuthenticated = Boolean(veritySession || hasSupabaseCookie)
+
+  // Protect /dashboard routes — without signup / account, users cannot access
+  if (pathname.startsWith('/dashboard')) {
+    if (!isAuthenticated) {
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/login'
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  try {
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({ request })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    // Protect dashboard routes
-    if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-
-    // Redirect authenticated users away from auth pages
-    if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
-  } catch {
-    // If Supabase connection fails, permit local requests to continue
-    return NextResponse.next({ request })
+  // Redirect authenticated users away from /login and /signup
+  if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
+    const dashboardUrl = request.nextUrl.clone()
+    dashboardUrl.pathname = '/dashboard'
+    dashboardUrl.searchParams.delete('redirect')
+    return NextResponse.redirect(dashboardUrl)
   }
 
-  return supabaseResponse
+  return NextResponse.next({ request })
 }
 
 export const config = {

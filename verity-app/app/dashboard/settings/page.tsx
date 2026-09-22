@@ -11,28 +11,27 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase";
+import { auth, type AuthUser } from "@/lib/auth";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.push("/login"); return; }
-      setUser(session.user);
-      setLoading(false);
+    if (!auth.isAuthenticated()) {
+      router.push("/login?redirect=/dashboard/settings");
+      return;
     }
-    load();
+    const usr = auth.getUser();
+    setUser(usr);
+    setLoading(false);
   }, [router]);
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
+  function handleLogout() {
+    auth.signOut();
+    router.push("/login");
+    router.refresh();
   }
 
   if (loading) {
@@ -59,7 +58,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <Label>Full Name</Label>
-              <Input value={user?.user_metadata?.full_name || ""} disabled className="mt-1" />
+              <Input value={user?.full_name || user?.email || ""} disabled className="mt-1" />
             </div>
           </CardContent>
         </Card>

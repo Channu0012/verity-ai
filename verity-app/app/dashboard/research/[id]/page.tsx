@@ -40,6 +40,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const stageSequence = [
   { key: "planning", label: "Planning", desc: "Decomposing into sub-questions" },
@@ -417,6 +419,13 @@ export default function ResearchWorkspace() {
 
               {report && (
                 <div className="flex items-center gap-1.5 shrink-0">
+                  <Link href={`/dashboard/reports/${report.id}`}>
+                    <Button size="sm" className="h-8 px-2.5 text-xs bg-sky-500 hover:bg-sky-400 text-black font-semibold gap-1">
+                      <FileText className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Open Full Dossier</span>
+                      <span className="sm:hidden">Dossier</span>
+                    </Button>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -430,7 +439,7 @@ export default function ResearchWorkspace() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleExport("markdown")}
-                    className="h-8 px-2.5 text-xs font-mono"
+                    className="h-8 px-2.5 text-xs font-mono hidden sm:inline-flex"
                   >
                     <Download className="w-3.5 h-3.5 mr-1" /> MD
                   </Button>
@@ -438,7 +447,7 @@ export default function ResearchWorkspace() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleExport("json")}
-                    className="h-8 px-2.5 text-xs font-mono"
+                    className="h-8 px-2.5 text-xs font-mono hidden sm:inline-flex"
                   >
                     <Download className="w-3.5 h-3.5 mr-1" /> JSON
                   </Button>
@@ -446,10 +455,10 @@ export default function ResearchWorkspace() {
               )}
             </CardHeader>
 
-            <CardContent className="p-5 sm:p-7 flex-1">
+            <CardContent className="p-4 sm:p-7 flex-1">
               {/* Active Pipeline Status Terminal */}
               {isActive && (
-                <div className="p-6 rounded-xl border border-primary/30 bg-primary/[0.02] space-y-4 my-8">
+                <div className="p-5 sm:p-6 rounded-xl border border-primary/30 bg-primary/[0.02] space-y-4 my-6 sm:my-8">
                   <div className="flex items-center gap-3">
                     <Loader2 className="w-6 h-6 animate-spin text-primary shrink-0" />
                     <div>
@@ -462,10 +471,10 @@ export default function ResearchWorkspace() {
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-lg bg-background/90 border border-border/70 font-mono text-xs space-y-1.5">
+                  <div className="p-3.5 rounded-lg bg-background/90 border border-border/70 font-mono text-xs space-y-1.5 overflow-x-auto">
                     <div className="text-emerald-400">✔ Agent Planner: 3 tasks initialized</div>
                     <div className="text-sky-400">
-                      ➜ Discovering sources via DuckDuckGo HTML & CrossRef Academic...
+                      ➜ Discovering sources via Multi-Engine Search & CrossRef...
                     </div>
                     {sources.length > 0 && (
                       <div className="text-muted-foreground">
@@ -478,15 +487,15 @@ export default function ResearchWorkspace() {
 
               {/* Completed Report Content */}
               {report && (
-                <ScrollArea className="h-[68vh] pr-4">
-                  <article className="prose prose-invert max-w-none text-sm leading-relaxed space-y-6">
+                <ScrollArea className="h-[68vh] pr-2 sm:pr-4">
+                  <article className="prose prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed space-y-6 overflow-x-auto prose-table:text-xs prose-th:p-2 prose-td:p-2 prose-table:border prose-table:border-border/40 prose-th:bg-muted/30 prose-a:text-primary hover:prose-a:underline prose-blockquote:border-primary/40 prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:px-3">
                     {/* Executive Summary */}
                     {report.executive_summary && (
-                      <div className="p-4 rounded-xl bg-accent/30 border border-border/60">
+                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
                         <h3 className="text-xs font-mono uppercase tracking-wider text-primary font-bold mb-2">
                           Executive Summary
                         </h3>
-                        <p className="text-foreground/90 leading-relaxed m-0 text-sm">
+                        <p className="text-foreground/90 leading-relaxed m-0 text-xs sm:text-sm">
                           {report.executive_summary}
                         </p>
                       </div>
@@ -497,21 +506,21 @@ export default function ResearchWorkspace() {
                       report.sections
                         .sort((a: any, b: any) => a.order - b.order)
                         .map((sec: any) => (
-                          <div key={sec.id || sec.order} className="space-y-2">
-                            <h2 className="text-base font-bold text-foreground border-b border-border/40 pb-1.5 flex items-center justify-between">
+                          <div key={sec.id || sec.order} className="space-y-3 pt-2">
+                            <h2 className="text-base sm:text-lg font-bold text-foreground border-b border-border/40 pb-1.5 flex items-center justify-between">
                               <span>{sec.title}</span>
                               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground font-normal">
                                 {sec.section_type}
                               </Badge>
                             </h2>
-                            <div className="text-foreground/90 whitespace-pre-wrap leading-relaxed text-sm">
-                              {sec.content}
+                            <div className="text-foreground/90 leading-relaxed text-xs sm:text-sm overflow-x-auto">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{sec.content}</ReactMarkdown>
                             </div>
                           </div>
                         ))
                     ) : report.full_content ? (
-                      <div className="whitespace-pre-wrap text-sm text-foreground/90 leading-relaxed">
-                        {report.full_content}
+                      <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed overflow-x-auto">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{report.full_content}</ReactMarkdown>
                       </div>
                     ) : (
                       <p className="text-muted-foreground italic">

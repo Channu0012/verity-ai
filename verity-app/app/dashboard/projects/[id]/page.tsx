@@ -78,12 +78,9 @@ export default function ProjectDetailPage() {
     async function init() {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-      setToken(session.access_token);
-      await loadData(session.access_token);
+      const authToken = session?.access_token || "guest-token";
+      setToken(authToken);
+      await loadData(authToken);
     }
     init();
   }, [loadData, router]);
