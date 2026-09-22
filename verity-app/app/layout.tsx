@@ -19,11 +19,20 @@ export const metadata: Metadata = {
     "citation verification",
     "research engine",
   ],
+  icons: {
+    icon: "/verity-logo.png",
+    apple: "/verity-logo.png",
+  },
   openGraph: {
     title: "VERITY — Evidence-First AI Research Engine",
     description:
       "Transform complex research questions into structured, evidence-backed reports.",
     type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "VERITY — Evidence-First AI Research Engine",
+    description: "Transform complex research questions into structured, evidence-backed reports.",
   },
 };
 
