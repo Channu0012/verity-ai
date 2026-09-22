@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -102,7 +103,13 @@ export default function ProjectsPage() {
       <nav className="border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-lg z-40">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4">
           <Link href="/dashboard"><Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button></Link>
-          <BookOpen className="w-5 h-5 text-primary" />
+          <Image
+            src="/logo.png"
+            alt="VERITY"
+            width={24}
+            height={24}
+            className="rounded-md object-contain shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+          />
           <span className="font-semibold">Projects</span>
         </div>
       </nav>

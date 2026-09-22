@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -236,9 +237,13 @@ export default function ResearchWorkspace() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 truncate">
-              <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
-                <Compass className="w-4 h-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="VERITY"
+                width={24}
+                height={24}
+                className="rounded-md object-contain shrink-0 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+              />
               <span className="font-semibold text-sm truncate max-w-lg">
                 {research.question}
               </span>

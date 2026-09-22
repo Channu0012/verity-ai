@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -77,7 +78,9 @@ export default function ReportViewerPage() {
     if (!token || !report) return;
     try {
       setDownloading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/reports/${reportId}/export`, {
+      const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+      const apiBase = isLocalhost && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "") : "";
+      const res = await fetch(`${apiBase}/api/v1/reports/${reportId}/export`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -172,6 +175,13 @@ export default function ReportViewerPage() {
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
+            <Image
+              src="/logo.png"
+              alt="VERITY"
+              width={22}
+              height={22}
+              className="rounded-md object-contain shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+            />
             <span className="text-xs text-muted-foreground font-mono">
               REPORT #{report.id.slice(0, 8)}
             </span>

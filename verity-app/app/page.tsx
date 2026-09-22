@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,26 +21,14 @@ import {
   FileCheck2,
   ExternalLink,
   ChevronRight,
+  Play,
+  Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CosmicBackground } from "@/components/ui/cosmic-background";
-import { FloatingPathsBackground } from "@/components/ui/floating-paths";
-
-// ─── VERITY Logo Component ──────────────────────────────────────────
-function VerityLogo({ size = 36 }: { size?: number }) {
-  return (
-    <Image
-      src="/verity-logo.png"
-      alt="VERITY"
-      width={size}
-      height={size}
-      className="rounded-xl object-contain shadow-[0_0_20px_rgba(56,189,248,0.2)]"
-      priority
-    />
-  );
-}
+import { HeroVideoBackground } from "@/components/ui/hero-video-background";
+import { VerityBrandLogo } from "@/components/ui/verity-logo";
 
 // ─── Sample Research Queries ─────────────────────────────────────────
 const SAMPLE_QUERIES = [
@@ -98,12 +85,13 @@ const DEMO_CLAIMS = [
 export default function HomePage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [selectedMode, setSelectedMode] = useState("quick");
   const [selectedClaim, setSelectedClaim] = useState(0);
 
   const startResearchWithQuery = (qText: string) => {
     const target = qText.trim();
     if (!target) return;
-    router.push(`/dashboard/research/new?q=${encodeURIComponent(target)}&autoStart=true`);
+    router.push(`/dashboard/research/new?q=${encodeURIComponent(target)}&mode=${selectedMode}&autoStart=true`);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -114,28 +102,21 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen bg-black text-white selection:bg-sky-400/20 selection:text-sky-200 overflow-x-hidden">
       {/* ─── NAVBAR ─────────────────────────────────────────────── */}
-      <nav className="relative z-50 border-b border-white/[0.08] bg-black/70 backdrop-blur-2xl sticky top-0">
+      <nav className="relative z-50 border-b border-white/[0.08] bg-black/60 backdrop-blur-2xl sticky top-0">
         <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <VerityLogo size={32} />
-            <div className="flex flex-col">
-              <span className="text-lg font-extrabold tracking-tight text-white group-hover:text-sky-400 transition-colors">
-                VERITY
-              </span>
-              <span className="text-[9px] tracking-[0.25em] text-white/40 uppercase -mt-0.5 font-mono">
-                Evidence Engine
-              </span>
-            </div>
-          </Link>
+          <VerityBrandLogo size={34} subtitle="Autonomous Evidence Engine" />
 
           <div className="hidden md:flex items-center gap-8 text-[13px] font-medium text-white/60">
-            <a href="#pipeline" className="hover:text-white transition-colors">
-              Pipeline
+            <a href="#studio" className="hover:text-sky-300 transition-colors">
+              Research Studio
             </a>
-            <a href="#demo" className="hover:text-white transition-colors">
-              Evidence Inspector
+            <a href="#pipeline" className="hover:text-sky-300 transition-colors">
+              9-Stage Engine
             </a>
-            <a href="#comparison" className="hover:text-white transition-colors">
+            <a href="#demo" className="hover:text-sky-300 transition-colors">
+              Telemetry Inspector
+            </a>
+            <a href="#comparison" className="hover:text-sky-300 transition-colors">
               Why VERITY
             </a>
           </div>
@@ -145,7 +126,7 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-white/70 hover:text-white hover:bg-white/5 text-[13px]"
+                className="text-white/70 hover:text-white hover:bg-white/5 text-[13px] px-4 rounded-xl"
               >
                 Sign In
               </Button>
@@ -153,442 +134,475 @@ export default function HomePage() {
             <Link href="/dashboard/research/new">
               <Button
                 size="sm"
-                className="bg-sky-500 hover:bg-sky-400 text-black font-semibold text-[13px] px-4 shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all"
+                className="bg-sky-500 hover:bg-sky-400 text-black font-semibold text-[13px] px-4 py-2 rounded-xl shadow-[0_0_25px_rgba(56,189,248,0.35)] transition-all active:scale-95 flex items-center gap-2"
               >
-                Start Research
-                <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                <Sparkles className="w-3.5 h-3.5 text-black" />
+                <span>Launch Studio</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
               </Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ─── HERO SECTION: Clean Cosmic Backing with Focused Research Bar ─── */}
-      <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden py-20">
-        <CosmicBackground />
+      {/* ─── HERO SECTION: Cinematic Video Background with Clean Grand Layout ─── */}
+      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
+        {/* Direct native HD video canvas with watermark shield */}
+        <HeroVideoBackground />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-8 pb-16">
           {/* Status Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-sky-500/20 bg-sky-500/[0.08] backdrop-blur-md text-sky-300 text-xs font-mono tracking-wider mb-6"
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-sky-400/25 bg-sky-500/[0.1] backdrop-blur-xl text-sky-300 text-xs font-mono tracking-widest uppercase mb-8 shadow-[0_0_30px_rgba(56,189,248,0.15)]"
           >
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
             <Crosshair className="w-3.5 h-3.5 text-sky-400" />
-            <span>Precision Research Instrument · Zero Hallucinated Citations</span>
+            <span>Autonomous Evidence Intelligence · Zero Hallucinated Citations</span>
           </motion.div>
 
-          {/* Headline */}
+          {/* Master Title */}
           <motion.h1
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6"
+            transition={{ delay: 0.15, duration: 0.7 }}
+            className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.04] mb-8 select-none"
           >
             Don&apos;t trust the answer.
             <br />
-            <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-300 via-cyan-200 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(56,189,248,0.3)]">
               Follow the evidence.
             </span>
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-light"
           >
-            An autonomous multi-stage evidence engine. Extracts verbatim passages from scholarly feeds, detects empirical contradictions, and proves every claim.
+            The autonomous factuality engine for high-stakes decisions. Extracts verbatim passages from peer-reviewed literature, cross-audits empirical discrepancies, and guarantees every citation.
           </motion.p>
 
-          {/* Research Search Bar */}
+          {/* Clean Million-Dollar Action Deck (No Clutter on Video) */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="max-w-2xl mx-auto"
+            transition={{ delay: 0.45, duration: 0.7 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14"
           >
-            <form
-              onSubmit={handleSearch}
-              className="p-1.5 rounded-2xl border border-white/15 bg-black/60 backdrop-blur-2xl shadow-[0_0_50px_rgba(56,189,248,0.15)] flex items-center gap-2 transition-all focus-within:border-sky-500/60 focus-within:shadow-[0_0_60px_rgba(56,189,248,0.25)]"
-            >
-              <div className="flex items-center gap-3 px-4 py-3 flex-1">
-                <Search className="w-5 h-5 text-sky-400 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Ask any complex research inquiry..."
-                  className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/40 text-base font-medium"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
+            <Link href="/dashboard/research/new">
               <Button
-                type="submit"
-                className="bg-sky-500 hover:bg-sky-400 text-black font-semibold px-6 py-6 rounded-xl shadow-[0_0_20px_rgba(56,189,248,0.3)] shrink-0 transition-transform active:scale-95"
+                size="lg"
+                className="h-14 px-8 rounded-2xl bg-sky-500 hover:bg-sky-400 text-black font-bold text-base shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-3"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Research
+                <Sparkles className="w-5 h-5 text-black" />
+                <span>Start Autonomous Research</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
-            </form>
+            </Link>
 
-            {/* Quick Explore Chips */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-5 text-xs">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-white/30 mr-1">
-                Explore:
-              </span>
-              {SAMPLE_QUERIES.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => startResearchWithQuery(q)}
-                  className="px-3 py-1 rounded-md border border-white/[0.08] hover:border-sky-500/40 hover:bg-sky-500/10 hover:text-sky-200 text-white/50 bg-white/[0.02] transition-all cursor-pointer text-xs"
-                >
-                  {q}
-                </button>
-              ))}
+            <a href="#studio">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-14 px-8 rounded-2xl border-white/20 bg-black/40 hover:bg-white/10 text-white font-medium text-base backdrop-blur-xl transition-all hover:border-sky-400/50 flex items-center gap-2.5"
+              >
+                <Search className="w-4 h-4 text-sky-400" />
+                <span>Explore Research Console</span>
+              </Button>
+            </a>
+          </motion.div>
+
+          {/* Clean Metric Badges (Transparent Floating Glass) */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 rounded-2xl border border-white/[0.08] bg-black/40 backdrop-blur-xl text-xs text-white/60 font-mono"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>100% Verbatim Citation Anchors</span>
+            </div>
+            <span className="text-white/20 hidden sm:inline">|</span>
+            <div className="flex items-center gap-2">
+              <GitCompare className="w-4 h-4 text-sky-400" />
+              <span>Cross-Source Contradiction Auditing</span>
+            </div>
+            <span className="text-white/20 hidden sm:inline">|</span>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <span>Zero Hallucinated Bibliographies</span>
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* ─── RESEARCH STUDIO & SEARCH CONSOLE SECTION ─────────────── */}
+      <section id="studio" className="relative py-20 border-t border-white/[0.08] bg-gradient-to-b from-black via-slate-950/60 to-black">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center mb-8">
+            <Badge variant="outline" className="mb-3 font-mono text-xs uppercase tracking-widest text-sky-400 border-sky-500/30">
+              Interactive Research Console
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
+              Investigate Any Technical or Scientific Hypothesis
+            </h2>
+            <p className="text-white/60 text-sm max-w-xl mx-auto">
+              Execute live multi-engine discovery across CrossRef scholarly DOIs, arXiv preprints, and verified web sources.
+            </p>
+          </div>
+
+          {/* Research Box Form */}
+          <div className="p-3 sm:p-4 rounded-3xl border border-white/15 bg-white/[0.02] backdrop-blur-2xl shadow-[0_0_60px_rgba(56,189,248,0.12)] transition-all focus-within:border-sky-500/50">
+            {/* Mode selection pills */}
+            <div className="flex items-center gap-2 mb-3 px-2">
+              <button
+                type="button"
+                onClick={() => setSelectedMode("quick")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                  selectedMode === "quick"
+                    ? "bg-sky-500 text-black font-semibold"
+                    : "text-white/50 hover:text-white bg-white/5"
+                }`}
+              >
+                Quick Diligence (~30s)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedMode("deep")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                  selectedMode === "deep"
+                    ? "bg-sky-500 text-black font-semibold"
+                    : "text-white/50 hover:text-white bg-white/5"
+                }`}
+              >
+                Deep Empirical Audit (~2m)
+              </button>
+            </div>
+
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch gap-2.5">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-black/60 border border-white/10 flex-1">
+                <Search className="w-5 h-5 text-sky-400 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Ask any complex research question, clinical hypothesis, or due diligence inquiry..."
+                  className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/35 text-base font-medium"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="h-14 sm:h-auto bg-sky-500 hover:bg-sky-400 text-black font-bold px-8 rounded-2xl shadow-[0_0_25px_rgba(56,189,248,0.3)] shrink-0 transition-transform active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Launch Research</span>
+              </Button>
+            </form>
+          </div>
+
+          {/* Quick Explore Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-6 text-xs">
+            <span className="font-mono text-[11px] uppercase tracking-wider text-white/40 mr-1 flex items-center gap-1.5">
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              Suggested Inquiries:
+            </span>
+            {SAMPLE_QUERIES.map((q) => (
+              <button
+                key={q}
+                onClick={() => startResearchWithQuery(q)}
+                className="px-3.5 py-1.5 rounded-xl border border-white/[0.08] hover:border-sky-500/50 hover:bg-sky-500/10 hover:text-sky-200 text-white/60 bg-white/[0.02] transition-all cursor-pointer text-xs"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── INTERACTIVE EVIDENCE INSPECTOR DEMO ─────────────── */}
-      <section id="demo" className="relative py-24 border-t border-white/[0.06] bg-gradient-to-b from-black via-slate-950/40 to-black">
+      <section id="demo" className="relative py-24 border-t border-white/[0.06] bg-black">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <Badge variant="outline" className="mb-3 font-mono text-xs uppercase tracking-widest text-sky-400 border-sky-500/30">
               Interactive Telemetry
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-white">
-              The Evidence Inspector
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
+              See How VERITY Proves Every Claim
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm sm:text-base">
-              Click any claim below to audit the verbatim passage, publisher DOI, and verification status in real time.
+            <p className="text-base text-white/50 max-w-2xl mx-auto">
+              Click any extracted assertion below to inspect its verbatim text passage, cryptographic source anchor, and contradiction score.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Synthesis Report Viewer */}
-            <Card className="bg-black/60 border-white/10 backdrop-blur-xl shadow-2xl">
-              <CardContent className="p-6 sm:p-8 space-y-5">
-                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                  <div className="flex items-center gap-2">
-                    <FileCheck2 className="w-5 h-5 text-sky-400" />
-                    <span className="font-semibold text-sm text-white">Synthesis Dossier</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left: Claim Selector */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="text-xs font-mono uppercase tracking-widest text-white/40 mb-2 px-1">
+                Extracted Assertions (Solid-State Batteries)
+              </div>
+              {DEMO_CLAIMS.map((c, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedClaim(idx)}
+                  className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                    selectedClaim === idx
+                      ? "bg-white/[0.06] border-sky-500/50 shadow-[0_0_20px_rgba(56,189,248,0.15)] ring-1 ring-sky-500/20"
+                      : "bg-white/[0.015] border-white/[0.07] hover:border-white/20 hover:bg-white/[0.03]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-white/90 font-mono flex items-center gap-1.5">
+                      {c.badge === "warning" ? (
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      )}
+                      {c.source}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={`text-[11px] font-mono ${
+                        c.badge === "warning"
+                          ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                          : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                      }`}
+                    >
+                      {c.badge === "warning" ? "Contradiction 94%" : `Fidelity ${c.match}%`}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="text-[11px] font-mono text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
-                    Citation Fidelity: 98%
-                  </Badge>
-                </div>
-
-                <div>
-                  <h4 className="text-base sm:text-lg font-bold mb-1.5 text-white">
-                    Solid-State Electrolyte Interface Kinetics
-                  </h4>
-                  <p className="text-xs text-white/40 mb-4 font-mono">
-                    Inquiry: Commercialization bottlenecks for solid-state EV batteries
+                  <p className="text-xs text-white/70 line-clamp-2 leading-relaxed">
+                    {c.text}
                   </p>
-                  <p className="text-xs sm:text-sm leading-relaxed text-white/70 mb-5">
-                    Recent empirical evaluations across automotive test matrices confirm that sulfide-based solid electrolytes encounter severe interfacial resistance when cycled at fast-charging rates.
-                  </p>
+                </button>
+              ))}
+            </div>
 
-                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-                    <p className="text-[11px] uppercase font-mono text-white/40">Select claim to verify:</p>
-                    <div className="space-y-2.5">
-                      {DEMO_CLAIMS.map((claim, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setSelectedClaim(i)}
-                          className={`w-full text-left p-3 rounded-lg border text-xs cursor-pointer transition-all ${
-                            selectedClaim === i
-                              ? "border-sky-500 bg-sky-500/10 shadow-[0_0_20px_rgba(56,189,248,0.15)]"
-                              : "border-white/[0.06] hover:border-white/[0.15] hover:bg-white/[0.03]"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <Badge
-                              variant={claim.badge === "warning" ? "outline" : "default"}
-                              className={`text-[10px] font-mono ${
-                                claim.badge === "warning"
-                                  ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                                  : claim.badge === "primary"
-                                  ? "bg-sky-500 text-black font-semibold"
-                                  : "bg-white/10 text-white/80"
-                              }`}
-                            >
-                              {claim.badge === "warning" ? "[Contradiction Detected]" : `[Source: ${claim.source}]`}
-                            </Badge>
-                            <span className="text-[10px] text-white/40 font-mono">Match: {claim.match}%</span>
-                          </div>
-                          <p className="font-medium text-white/85 leading-relaxed">{claim.text}</p>
-                        </button>
-                      ))}
+            {/* Right: Verbatim Evidence Inspector */}
+            <div className="lg:col-span-7">
+              <div className="text-xs font-mono uppercase tracking-widest text-white/40 mb-2 px-1">
+                Passage-Level Verification Telemetry
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedClaim}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden"
+                >
+                  {/* Glowing corner indicator */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/[0.08]">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-sky-400" />
+                      <span className="text-xs font-mono uppercase tracking-wider text-sky-300">
+                        Citation Fidelity: Verified
+                      </span>
                     </div>
+                    <span className="text-xs font-mono text-white/40">
+                      Anchor ID: VERITY-EVID-8291
+                    </span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Evidence & Source Inspector */}
-            <Card className="bg-sky-950/20 border-sky-500/20 backdrop-blur-xl shadow-2xl">
-              <CardContent className="p-6 sm:p-8 space-y-5">
-                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-5 h-5 text-sky-400" />
-                    <span className="font-semibold text-sm text-white">Live Passage Auditor</span>
+                  <div className="mb-4">
+                    <div className="text-[11px] font-mono text-white/40 uppercase mb-1">
+                      Target Assertion
+                    </div>
+                    <p className="text-sm font-semibold text-white leading-relaxed">
+                      {DEMO_CLAIMS[selectedClaim].text}
+                    </p>
                   </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">
-                    Verified Supported
-                  </Badge>
-                </div>
 
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedClaim}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
+                  <div className="mb-4 p-4 rounded-xl bg-black/60 border border-white/[0.08]">
+                    <div className="text-[11px] font-mono text-sky-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                      <FileCheck2 className="w-3.5 h-3.5" />
+                      Verbatim Extracted Passage
+                    </div>
+                    <p className="text-xs text-white/80 font-mono leading-relaxed italic">
+                      {DEMO_CLAIMS[selectedClaim].passage}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-white/50">
                     <div>
-                      <div className="text-[11px] text-white/40 font-mono uppercase tracking-wider mb-1">
-                        Originating Source
-                      </div>
-                      <h4 className="font-semibold text-white text-sm leading-snug">
+                      <div className="font-semibold text-white/80">
                         {DEMO_CLAIMS[selectedClaim].paperTitle}
-                      </h4>
-                      <p className="text-xs text-sky-400 font-mono mt-1">
+                      </div>
+                      <div className="text-[11px] font-mono text-white/40">
                         {DEMO_CLAIMS[selectedClaim].citation}
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-white/40 uppercase">Verbatim Source Excerpt</span>
-                        <Badge variant="outline" className="text-[10px] font-mono text-white/50 border-white/10">
-                          Raw Unedited
-                        </Badge>
-                      </div>
-                      <p className="text-xs italic leading-relaxed text-white/80 border-l-2 border-sky-500 pl-3">
-                        {DEMO_CLAIMS[selectedClaim].passage}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <div className="p-3 rounded-lg border border-white/[0.08] bg-white/[0.02]">
-                        <div className="text-[10px] uppercase font-mono text-white/40">Fidelity Score</div>
-                        <div className="text-lg font-bold text-sky-400 font-mono">{DEMO_CLAIMS[selectedClaim].match}%</div>
-                      </div>
-                      <div className="p-3 rounded-lg border border-white/[0.08] bg-white/[0.02]">
-                        <div className="text-[10px] uppercase font-mono text-white/40">Citation Audit</div>
-                        <div className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          {selectedClaim === 2 ? "Contradiction Flagged" : "Pass (Zero Hallucination)"}
-                        </div>
                       </div>
                     </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                <div className="pt-2">
-                  <Button
-                    onClick={() => startResearchWithQuery("Solid-State EV Battery Commercialization")}
-                    className="w-full text-xs font-mono bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30"
-                  >
-                    Launch Live Workspace Telemetry
-                    <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <Link href="/dashboard/research/new">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs border-sky-500/30 text-sky-300 hover:bg-sky-500/10 rounded-lg shrink-0"
+                      >
+                        Inspect Full Dossier
+                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── COMPARISON SECTION: Generic Chatbots vs VERITY ───── */}
-      <section id="comparison" className="relative py-24 border-t border-white/[0.06]">
-        <FloatingPathsBackground position={-1} className="py-8">
-          <div className="max-w-6xl mx-auto px-6 w-full">
-            <div className="text-center mb-14">
-              <Badge variant="outline" className="mb-3 font-mono text-xs uppercase tracking-widest text-sky-400 border-sky-500/30">
-                Architectural Contrast
-              </Badge>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-white">
-                Why Standard AI Fails High-Stakes Research
-              </h2>
-              <p className="text-white/50 max-w-2xl mx-auto text-sm sm:text-base">
-                Generic LLM generation cannot be trusted for scientific, legal, or investment diligence without verifiable source grounding.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Generic Chatbots */}
-              <Card className="bg-red-500/[0.02] border-red-500/20 backdrop-blur-xl">
-                <CardContent className="p-6 sm:p-8 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center border border-red-500/20">
-                      <AlertTriangle className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-red-400">Generic Chatbots</h3>
-                      <p className="text-xs text-white/40">Unverified probabilistic generation</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4 text-sm">
-                    {[
-                      { title: "Hallucinated Footnotes:", desc: "Fabricates convincing-sounding journal titles and fake DOIs." },
-                      { title: "Forced False Consensus:", desc: "Smooths over conflicting datasets into an ungrounded compromise." },
-                      { title: "Opaque Provenance:", desc: "Gives blocks of text with no exact passage trace or verifiable excerpt." },
-                      { title: "Zero Audit Trail:", desc: "No claim ledger, no contradiction checks, and no citation verification." },
-                    ].map((item) => (
-                      <div key={item.title} className="flex items-start gap-3">
-                        <span className="text-red-400 font-bold mt-0.5 shrink-0">✕</span>
-                        <p className="text-white/60">
-                          <strong className="text-white/90">{item.title}</strong> {item.desc}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* VERITY Engine */}
-              <Card className="bg-sky-500/[0.02] border-sky-500/30 backdrop-blur-xl shadow-[0_0_40px_rgba(56,189,248,0.08)]">
-                <CardContent className="p-6 sm:p-8 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-sky-400">VERITY Evidence Engine</h3>
-                      <p className="text-xs text-white/40">Grounded scientific intelligence</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4 text-sm">
-                    {[
-                      { title: "Verbatim Passage Quotes:", desc: "Every assertion maps to exact text with publisher metadata and live DOIs." },
-                      { title: "Contradiction Engine:", desc: "Surfaces empirical disagreements transparently instead of smoothing them away." },
-                      { title: "Interactive Evidence Inspector:", desc: "Click any inline citation to instantly audit the originating source passage." },
-                      { title: "Multi-Engine Search:", desc: "Queries live web, CrossRef DOI registry, and arXiv preprints concurrently." },
-                    ].map((item) => (
-                      <div key={item.title} className="flex items-start gap-3">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        <p className="text-white/60">
-                          <strong className="text-white/90">{item.title}</strong> {item.desc}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </FloatingPathsBackground>
-      </section>
-
-      {/* ─── 9-STAGE PIPELINE ────────────────────────────────── */}
-      <section id="pipeline" className="relative py-24 border-t border-white/[0.06] bg-black">
-        <div className="max-w-6xl mx-auto px-6">
+      {/* ─── 9-STAGE PIPELINE ARCHITECTURE ─────────────────────── */}
+      <section id="pipeline" className="relative py-28 border-t border-white/[0.06] bg-gradient-to-b from-black via-slate-950/40 to-black">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-3 font-mono text-xs uppercase tracking-widest text-sky-400 border-sky-500/30">
-              Deterministic Methodology
+              Autonomous Architecture
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-white">
-              The 9-Stage Autonomous Pipeline
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
+              The 9-Stage Factuality Engine
             </h2>
-            <p className="text-white/50 max-w-2xl mx-auto text-sm sm:text-base">
-              From raw question to published dossier: each stage enforces exit conditions, adversarial verification, and provenance tracking.
+            <p className="text-base text-white/50 max-w-2xl mx-auto">
+              Unlike generic chat assistants that guess answers, VERITY executes a deterministic, adversarial pipeline from query decomposition to citation audit.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {PIPELINE_STAGES.map((stage) => {
-              const IconComp = stage.icon;
+              const Icon = stage.icon;
               return (
-                <Card
+                <div
                   key={stage.num}
-                  className="bg-white/[0.02] border-white/[0.08] hover:border-sky-500/40 transition-all duration-300 group backdrop-blur-xl"
+                  className="p-6 rounded-2xl border border-white/[0.08] bg-white/[0.015] hover:border-sky-500/40 hover:bg-white/[0.03] transition-all group relative overflow-hidden"
                 >
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
-                          <IconComp className="w-3.5 h-3.5" />
-                        </div>
-                        <span className="text-xs font-mono text-sky-400 font-semibold tracking-wide">
-                          {stage.verb}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-white/30">
-                        Stage {stage.num}/9
-                      </span>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <h3 className="text-sm font-bold group-hover:text-sky-300 transition-colors text-white/95">
-                      {stage.title}
-                    </h3>
-                    <p className="text-xs text-white/50 leading-relaxed font-normal">
-                      {stage.desc}
-                    </p>
-                  </CardContent>
-                </Card>
+                    <span className="font-mono text-xs text-white/30">
+                      STAGE 0{stage.num}
+                    </span>
+                  </div>
+                  <div className="text-xs font-mono uppercase tracking-wider text-sky-400 mb-1">
+                    {stage.verb}
+                  </div>
+                  <h3 className="text-base font-bold text-white mb-2">
+                    {stage.title}
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    {stage.desc}
+                  </p>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ─── FINAL CTA ───────────────────────────────────────── */}
-      <section className="relative py-28 border-t border-white/[0.06] bg-gradient-to-b from-black to-slate-950">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="p-10 sm:p-14 rounded-3xl border border-sky-500/20 bg-gradient-to-b from-sky-500/[0.05] to-transparent backdrop-blur-2xl shadow-[0_0_80px_rgba(56,189,248,0.1)] space-y-6">
-            <div className="flex justify-center">
-              <VerityLogo size={52} />
-            </div>
-            <Badge variant="outline" className="font-mono text-xs uppercase tracking-wider text-sky-400 border-sky-500/30">
-              Autonomous Verification
+      {/* ─── WHY VERITY COMPARISON MATRIX ──────────────────────── */}
+      <section id="comparison" className="relative py-24 border-t border-white/[0.06] bg-black">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-3 font-mono text-xs uppercase tracking-widest text-sky-400 border-sky-500/30">
+              Soundness Benchmark
             </Badge>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
-              Stop Guessing. Start Verifying.
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
+              Built for High-Stakes Decisions
             </h2>
-            <p className="text-white/50 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-              Launch research inquiries through multi-engine web search, scholarly DOI validation, and passage-level evidence mapping.
+            <p className="text-base text-white/50 max-w-xl mx-auto">
+              Engineered for researchers, clinicians, investors, and engineers who cannot afford a plausible-sounding hallucination.
             </p>
-            <div className="pt-2 flex flex-col sm:flex-row gap-3.5 justify-center">
-              <Link href="/dashboard/research/new">
-                <Button
-                  size="lg"
-                  className="bg-sky-500 hover:bg-sky-400 text-black font-semibold px-8 py-6 text-base shadow-[0_0_30px_rgba(56,189,248,0.3)] transition-all"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Launch Research Workspace
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-white/15 hover:border-sky-500/40 text-white/70 hover:text-white bg-transparent px-8 py-6 text-base"
-                >
-                  Sign In
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.015] overflow-hidden">
+            <div className="grid grid-cols-12 p-4 border-b border-white/10 text-xs font-mono uppercase tracking-wider text-white/40">
+              <div className="col-span-5">Verification Capability</div>
+              <div className="col-span-3 text-center">Standard LLM / Search</div>
+              <div className="col-span-4 text-center text-sky-400 font-bold">VERITY Research Engine</div>
             </div>
+
+            {[
+              {
+                feat: "Citation Grounding",
+                standard: "Post-hoc simulated links (often 404s)",
+                verity: "Verbatim text excerpts anchored to verified DOIs",
+              },
+              {
+                feat: "Contradiction Detection",
+                standard: "Smooths over conflicting evidence",
+                verity: "Explicit cross-source discrepancy analysis",
+              },
+              {
+                feat: "Claim Atomization",
+                standard: "Blended generative paragraphs",
+                verity: "Isolated empirical assertions with confidence scores",
+              },
+              {
+                feat: "Scholarly Discovery",
+                standard: "Public SEO web scraper index",
+                verity: "CrossRef academic API + arXiv + live web",
+              },
+              {
+                feat: "Auditability & Export",
+                standard: "Ephemeral chat session history",
+                verity: "Exportable Dossiers (Markdown, JSON, Dossier)",
+              },
+            ].map((row, idx) => (
+              <div
+                key={idx}
+                className="grid grid-cols-12 p-4 border-b border-white/[0.04] text-xs items-center hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="col-span-5 font-medium text-white/90">{row.feat}</div>
+                <div className="col-span-3 text-center text-white/40">{row.standard}</div>
+                <div className="col-span-4 text-center text-sky-300 font-semibold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>{row.verity}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ─── FOOTER ──────────────────────────────────────────── */}
-      <footer className="border-t border-white/[0.06] py-8 bg-black">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <VerityLogo size={22} />
-            <span className="text-sm font-bold text-white/70">VERITY</span>
-            <span className="text-xs text-white/30 font-mono">· Autonomous Evidence Engine v1.0</span>
+      {/* ─── FOOTER & FINAL CTA ─────────────────────────────────── */}
+      <footer className="relative border-t border-white/[0.08] bg-black py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 pb-12 border-b border-white/[0.08]">
+            <div className="flex flex-col items-center md:items-start">
+              <VerityBrandLogo size={36} subtitle="Autonomous Evidence Engine" />
+              <p className="text-xs text-white/40 mt-3 max-w-sm text-center md:text-left">
+                Empirical factuality, verbatim citation verification, and autonomous research diligence.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard/research/new">
+                <Button className="bg-sky-500 hover:bg-sky-400 text-black font-semibold text-xs px-5 py-2.5 rounded-xl shadow-[0_0_20px_rgba(56,189,248,0.3)]">
+                  Launch App
+                </Button>
+              </Link>
+            </div>
           </div>
-          <p className="text-xs text-white/30 font-mono">
-            Zero Hallucinated Citations · High-Fidelity Research
-          </p>
+
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
+            <div>
+              © 2026 VERITY Research Systems. All empirical telemetry rights reserved.
+            </div>
+            <div className="flex items-center gap-6 font-mono text-[11px]">
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Vercel Serverless Ready
+              </span>
+              <span>v1.0.0-prod</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

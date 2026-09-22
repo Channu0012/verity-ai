@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -229,8 +230,14 @@ export default function NewResearchPage() {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-sky-400" />
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/logo.png"
+                alt="VERITY"
+                width={26}
+                height={26}
+                className="rounded-lg object-contain shadow-[0_0_12px_rgba(56,189,248,0.25)]"
+              />
               <span className="font-bold text-sm tracking-tight text-white">New Research Session</span>
             </div>
           </div>

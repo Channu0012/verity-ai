@@ -1,0 +1,7 @@
+backend/
+*.db
+*.sqlite
+*.sqlite3
+public/video-frames/
+.env*
+.git/

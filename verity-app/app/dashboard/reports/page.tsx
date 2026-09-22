@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -60,8 +61,9 @@ export default function ReportsPage() {
   async function handleExport(reportId: string, format: "markdown" | "json", title: string) {
     if (!token) return;
     try {
-      setDownloadingId(reportId);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/reports/${reportId}/export`, {
+      const isLocalhost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+      const apiBase = isLocalhost && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "") : "";
+      const res = await fetch(`${apiBase}/api/v1/reports/${reportId}/export`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,8 +113,14 @@ export default function ReportsPage() {
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/logo.png"
+                alt="VERITY"
+                width={24}
+                height={24}
+                className="rounded-md object-contain shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+              />
               <span className="font-semibold text-lg">Research Reports Library</span>
             </div>
           </div>

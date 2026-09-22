@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { VerityBrandLogo } from "@/components/ui/verity-logo";
 
 interface Project {
   id: string;
@@ -117,12 +118,7 @@ export default function DashboardPage() {
       <nav className="border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-lg z-40">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold">VERITY</span>
-            </Link>
+            <VerityBrandLogo size={28} href="/dashboard" />
             <Separator orientation="vertical" className="h-6" />
             <div className="hidden md:flex items-center gap-4 text-sm">
               <Link href="/dashboard" className="font-medium text-foreground">
