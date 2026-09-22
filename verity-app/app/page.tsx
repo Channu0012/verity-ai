@@ -38,6 +38,38 @@ const SAMPLE_QUERIES = [
   "EU AI Act Liability for Foundation Models",
 ];
 
+// ─── Research Mode Preset Templates ──────────────────────────────────
+const PRESET_TEMPLATES = [
+  {
+    icon: "🔬",
+    title: "Academic Diligence",
+    desc: "Peer-reviewed & DOIs",
+    query: "Solid-state electrolyte interface impedance kinetics under high C-rate cycling",
+    mode: "deep",
+  },
+  {
+    icon: "⚡",
+    title: "Rapid Fact-Check",
+    desc: "Speed empirical audit",
+    query: "Quantum computing fault tolerance threshold crossing milestone in 2026",
+    mode: "quick",
+  },
+  {
+    icon: "⚖️",
+    title: "Regulatory & Standards",
+    desc: "Legal & compliance scan",
+    query: "EU AI Act foundation model copyright liability and transparency requirements",
+    mode: "deep",
+  },
+  {
+    icon: "💼",
+    title: "Market & Capex Landscape",
+    desc: "Cost curves & timelines",
+    query: "EV solid-state battery pack level commercial cost per kWh projections",
+    mode: "quick",
+  },
+];
+
 // ─── Pipeline Stages ────────────────────────────────────────────────
 const PIPELINE_STAGES = [
   { num: 1, verb: "Decompose", title: "Research Planning", icon: Crosshair, desc: "Decomposes complex inquiries into orthogonal sub-questions & evidence requirements." },
@@ -237,6 +269,27 @@ export default function HomePage() {
             <p className="text-white/60 text-sm max-w-xl mx-auto">
               Execute live multi-engine discovery across CrossRef scholarly DOIs, arXiv preprints, and verified web sources.
             </p>
+          </div>
+
+          {/* Preset Research Templates */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+            {PRESET_TEMPLATES.map((tmpl) => (
+              <button
+                key={tmpl.title}
+                type="button"
+                onClick={() => {
+                  setQuery(tmpl.query);
+                  setSelectedMode(tmpl.mode);
+                }}
+                className="p-3 rounded-2xl border border-white/10 hover:border-sky-400/50 bg-white/[0.02] hover:bg-sky-500/[0.05] transition-all text-left group cursor-pointer"
+              >
+                <div className="text-lg mb-1">{tmpl.icon}</div>
+                <div className="text-xs font-semibold text-white group-hover:text-sky-300 transition-colors">
+                  {tmpl.title}
+                </div>
+                <div className="text-[10px] text-white/40 mt-0.5">{tmpl.desc}</div>
+              </button>
+            ))}
           </div>
 
           {/* Research Box Form */}

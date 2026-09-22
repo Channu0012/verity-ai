@@ -86,6 +86,33 @@ async function runTests() {
     console.log("  [SKIP] Local server on port 3000 not active");
   }
 
+  console.log("\n5. Testing Grounded AI Research Chat & Copilot:");
+  try {
+    const sampleId = "65b44f9c-8573-417f-b924-834ab3eb7068";
+    const chatGet = await fetchRoute(`/api/v1/research/${sampleId}/chat`);
+    assert(chatGet.status === 200, "Chat history API returns HTTP 200");
+    const chatData = JSON.parse(chatGet.body);
+    assert(Array.isArray(chatData.data) && chatData.data.length > 0, "Chat history contains pre-seeded grounded messages");
+
+    const chatPost = await fetchRoute(`/api/v1/research/${sampleId}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "What are the key experimental limitations?" }),
+    });
+    assert(chatPost.status === 200, "Chat post inquiry returns HTTP 200");
+    const postData = JSON.parse(chatPost.body);
+    assert(postData.data && postData.data.role === "assistant", "Chat reply contains grounded assistant role");
+    assert(postData.data.citations && postData.data.citations.length > 0, "Chat response includes citation anchors");
+
+    const projectsRes = await fetchRoute('/api/v1/projects');
+    assert(projectsRes.status === 200, "Projects catalog API returns HTTP 200");
+    const projs = JSON.parse(projectsRes.body);
+    assert(Array.isArray(projs) && projs.length > 0, "Projects array populated with workspaces");
+  } catch (err) {
+    console.log("  [FAIL] Grounded research chat test failed: " + err.message);
+    failed++;
+  }
+
   console.log("\n=======================================================");
   console.log(`   Test Results: ${passed} Passed, ${failed} Failed`);
   console.log("=======================================================\n");

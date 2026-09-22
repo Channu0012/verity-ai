@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CommandPalette } from "@/components/ui/command-palette";
 import "./globals.css";
 
 const inter = Inter({
@@ -206,7 +207,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${inter.variable} font-sans min-h-full flex flex-col bg-background text-foreground selection:bg-sky-500/20 selection:text-sky-200`}
       >
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          {children}
+          <CommandPalette />
+        </TooltipProvider>
       </body>
     </html>
   );

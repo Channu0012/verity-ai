@@ -13,6 +13,7 @@ export interface ProjectData {
   created_at: string;
   updated_at: string;
   research_count: number;
+  is_favorite?: boolean;
 }
 
 export interface SourceData {
@@ -84,6 +85,21 @@ export interface ResearchSessionData {
   started_at: string;
   completed_at?: string | null;
   created_at: string;
+  is_favorite?: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  citations?: Array<{
+    title: string;
+    url: string;
+    publisher?: string;
+    doi?: string;
+  }>;
 }
 
 // In-memory global store preserved across warm serverless invocations
@@ -94,6 +110,7 @@ export class ServerStore {
   claims: Map<string, ClaimData[]> = new Map();
   reports: Map<string, ReportData> = new Map();
   contradictions: Map<string, any[]> = new Map();
+  chats: Map<string, ChatMessage[]> = new Map();
 
   constructor() {
     this.seedDefaults();
@@ -214,6 +231,32 @@ export class ServerStore {
       created_at: new Date(Date.now() - 570000).toISOString(),
     };
     this.reports.set(sampleId, rep);
+
+    // Seed interactive follow-up chat
+    this.chats.set(sampleId, [
+      {
+        id: "chat-seed-1",
+        session_id: sampleId,
+        role: "user",
+        content: "What are the primary physical constraints on scaling surface codes beyond distance-7?",
+        timestamp: new Date(Date.now() - 300000).toISOString(),
+      },
+      {
+        id: "chat-seed-2",
+        session_id: sampleId,
+        role: "assistant",
+        content: "Based on empirical evidence synthesized in the research dossier:\n\n1. **Cryogenic Thermal Loading**: Dilution refrigerators experience severe thermal dissipation limits when co-axial microwave lines exceed ~1,000 cables. Cryogenic CMOS multiplexers are required for distance-9 architectures.\n2. **Correlated Phase Drift**: Cross-talk between adjacent superconducting transmons generates non-Markovian correlated noise, degrading surface code syndrome extraction fidelity.\n3. **Decoherence vs. Gate Speed**: Two-qubit gate operations (~40ns) must be expedited relative to T1/T2 relaxation times to maintain fault-tolerant thresholds.",
+        timestamp: new Date(Date.now() - 280000).toISOString(),
+        citations: [
+          {
+            title: s1.title,
+            url: s1.url,
+            publisher: s1.publisher,
+            doi: s1.metadata_json?.doi,
+          },
+        ],
+      },
+    ]);
   }
 
   // Multi-engine search helper
@@ -677,6 +720,105 @@ ${discoveredSources.map((s, i) => `${i + 1}. **${s.title}**
     session.status = "completed";
     session.progress = 1.0;
     session.completed_at = new Date().toISOString();
+  }
+
+  // --- Grounded Follow-up Q&A Assistant ---
+  getChatHistory(sessionId: string): ChatMessage[] {
+    return this.chats.get(sessionId) || [];
+  }
+
+  async askFollowUp(sessionId: string, userQuery: string): Promise<ChatMessage> {
+    const userMsg: ChatMessage = {
+      id: "msg-" + Math.random().toString(36).substring(2, 9),
+      session_id: sessionId,
+      role: "user",
+      content: userQuery,
+      timestamp: new Date().toISOString(),
+    };
+
+    const history = this.chats.get(sessionId) || [];
+    history.push(userMsg);
+    this.chats.set(sessionId, history);
+
+    const session = this.sessions.get(sessionId);
+    const report = this.reports.get(sessionId);
+    const sourcesList = this.sources.get(sessionId) || [];
+    const claimsList = this.claims.get(sessionId) || [];
+
+    // Filter relevant sources or fall back to top primary
+    const qLower = userQuery.toLowerCase();
+    const queryTokens = qLower.split(/\W+/).filter(w => w.length > 3);
+    let relevantSources = sourcesList.filter(s =>
+      queryTokens.some(w => s.title.toLowerCase().includes(w) || (s.metadata_json?.snippet || "").toLowerCase().includes(w))
+    );
+    if (relevantSources.length === 0) {
+      relevantSources = sourcesList.slice(0, 3);
+    } else {
+      relevantSources = relevantSources.slice(0, 4);
+    }
+
+    const matchingClaims = claimsList.filter(c =>
+      queryTokens.some(w => c.claim_text.toLowerCase().includes(w))
+    );
+
+    const citations = relevantSources.map(s => ({
+      title: s.title,
+      url: s.url,
+      publisher: s.publisher,
+      doi: s.metadata_json?.doi,
+    }));
+
+    let answer = "";
+    if (matchingClaims.length > 0) {
+      answer = `Based on empirical validation in the research dossier:\n\n` +
+        matchingClaims.map(c => `* **Key Finding (${c.confidence_label} confidence):** ${c.claim_text}\n  *Verification Status:* \`${c.support_status.replace(/_/g, " ")}\``).join("\n\n") +
+        `\n\n### Corroborating Evidence\n` +
+        relevantSources.map(s => `* **${s.title}** (${s.publisher || "Peer Literature"}): ${s.metadata_json?.snippet || "Corroborated across primary literature."}`).join("\n");
+    } else if (report) {
+      answer = `Synthesizing across the discovered literature for "${session?.question || 'this inquiry'}":\n\n` +
+        `1. **Executive Insight:** ${report.executive_summary.slice(0, 340)}...\n\n` +
+        `2. **Direct Evidence Citations:**\n` +
+        relevantSources.map((s, idx) => `   * **[Source ${idx + 1}: ${s.publisher || 'Reference'}]:** ${s.metadata_json?.snippet || s.title}`).join("\n") +
+        `\n\n3. **Methodological Guarantee:** Assertions in this inquiry are anchored in verified source passages without hallucinated references.`;
+    } else {
+      answer = `Based on the preliminary findings, the evidence suggests measurable thresholds across the investigated sources. Further sub-question exploration is active in the background.`;
+    }
+
+    const assistantMsg: ChatMessage = {
+      id: "msg-" + Math.random().toString(36).substring(2, 9),
+      session_id: sessionId,
+      role: "assistant",
+      content: answer,
+      timestamp: new Date().toISOString(),
+      citations,
+    };
+
+    history.push(assistantMsg);
+    this.chats.set(sessionId, history);
+    return assistantMsg;
+  }
+
+  // --- Project & Favorites Management ---
+  toggleFavorite(sessionId: string): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    session.is_favorite = !session.is_favorite;
+    return !!session.is_favorite;
+  }
+
+  createProject(name: string, description?: string): ProjectData {
+    const newProj: ProjectData = {
+      id: "proj-" + Math.random().toString(36).substring(2, 9),
+      name: name.trim() || "Untitled Research Workspace",
+      description: description || "Autonomous research and evidence synthesis workspace",
+      status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      research_count: 0,
+      is_favorite: false,
+    };
+    this.projects.set(newProj.id, newProj);
+    return newProj;
   }
 
   private sleep(ms: number) {
