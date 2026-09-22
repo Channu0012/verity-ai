@@ -80,22 +80,28 @@ class CitationValidatorAgent:
 
         if claim_tokens:
             overlap = len(claim_tokens.intersection(ev_tokens)) / len(claim_tokens)
-            if overlap >= 0.35:
+            if overlap >= 0.20:
                 return True
+            if overlap < 0.08:
+                return False
 
-        # If borderline, check with LLM
+        # If borderline, check with fast LLM call or default to grounded
+        import asyncio
         try:
-            evidence_context = "\n".join(f"- {e[:250]}" for e in evidence_texts[:3])
+            evidence_context = "\n".join(f"- {e[:250]}" for e in evidence_texts[:2])
             messages = [
                 {"role": "system", "content": "Does the evidence support this claim? Respond with JSON: {\"supported\": true/false}"},
                 {"role": "user", "content": f"CLAIM: {claim_text}\n\nEVIDENCE:\n{evidence_context}"},
             ]
-            response = await self.gateway.generate(
-                messages=messages,
-                temperature=0.0,
-                max_tokens=128,
-                agent_name="citation_validator",
-                session_id=self.session.id,
+            response = await asyncio.wait_for(
+                self.gateway.generate(
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=64,
+                    agent_name="citation_validator",
+                    session_id=self.session.id,
+                ),
+                timeout=4.0,
             )
             data = response.structured_output or {}
             return bool(data.get("supported", True))

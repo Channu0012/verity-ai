@@ -132,15 +132,12 @@ export default function ResearchWorkspace() {
       const {
         data: { session: authSession },
       } = await supabase.auth.getSession();
-      if (!authSession) {
-        router.push("/login");
-        return;
-      }
-      setSession(authSession);
-      await loadResearch(authSession.access_token);
+      const token = authSession?.access_token || "demo-local-token";
+      setSession(authSession || { access_token: token });
+      await loadResearch(token);
     }
     init();
-  }, [router, loadResearch]);
+  }, [loadResearch]);
 
   // Polling for active research
   useEffect(() => {

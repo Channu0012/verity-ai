@@ -33,7 +33,16 @@ class OpenAIProvider(AIProvider):
         self._name = name
         self.api_key = api_key or settings.openai_api_key
         self.base_url = base_url
-        self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url) if self.api_key else None
+        self.client = (
+            AsyncOpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url,
+                timeout=8.0,
+                max_retries=0,
+            )
+            if self.api_key
+            else None
+        )
 
     @property
     def name(self) -> str:

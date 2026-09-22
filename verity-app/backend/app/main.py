@@ -27,8 +27,21 @@ async def lifespan(app: FastAPI):
     try:
         await init_db()
         logger.info("Database initialized")
+
+        # Clean up any stale sessions from previous crashes/restarts
+        from app.database import async_session
+        from app.models import ResearchSession
+        from sqlalchemy import update
+        async with async_session() as db:
+            await db.execute(
+                update(ResearchSession)
+                .where(ResearchSession.status.in_(["queued", "planning", "searching", "ingesting", "retrieving", "analyzing", "verifying", "generating"]))
+                .values(status="failed", error_message="Session interrupted by server restart")
+            )
+            await db.commit()
+            logger.info("Stale research sessions cleaned up")
     except Exception as e:
-        logger.warning("Database init skipped (may not be available)", error=str(e))
+        logger.warning("Database init/cleanup skipped", error=str(e))
     yield
     logger.info("VERITY shutting down")
 
@@ -42,19 +55,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# --- CORS ---
+# --- CORS Middleware (Permissive for local development & Vercel) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
 # --- Request ID Middleware ---
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
     request_id = str(uuid.uuid4())[:8]
     request.state.request_id = request_id
     response: Response = await call_next(request)
