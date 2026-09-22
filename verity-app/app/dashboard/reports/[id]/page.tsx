@@ -156,6 +156,40 @@ export default function ReportViewerPage() {
     );
   }
 
+  const markdownComponents = {
+    a: ({ node, ...props }: any) => (
+      <a
+        {...props}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-sky-400 hover:text-sky-300 underline underline-offset-4 decoration-sky-400/40 hover:decoration-sky-400 font-medium transition-colors"
+      />
+    ),
+    table: ({ node, ...props }: any) => (
+      <div className="w-full overflow-x-auto my-4 rounded-xl border border-border/70 bg-card/60 shadow-sm">
+        <table {...props} className="w-full text-xs text-left border-collapse" />
+      </div>
+    ),
+    th: ({ node, ...props }: any) => (
+      <th
+        {...props}
+        className="px-3.5 py-2.5 bg-muted/60 text-foreground font-semibold text-[11px] uppercase tracking-wider border-b border-border/60"
+      />
+    ),
+    td: ({ node, ...props }: any) => (
+      <td
+        {...props}
+        className="px-3.5 py-2.5 text-foreground/85 border-b border-border/30 align-top"
+      />
+    ),
+    blockquote: ({ node, ...props }: any) => (
+      <blockquote
+        {...props}
+        className="border-l-4 border-sky-400 bg-sky-500/[0.06] rounded-r-xl py-3 px-4 my-3 text-foreground/90 italic border-y border-r border-border/30"
+      />
+    ),
+  };
+
   const sortedSections = [...(report.sections || [])].sort(
     (a, b) => a.order_index - b.order_index
   );
@@ -290,33 +324,44 @@ export default function ReportViewerPage() {
           </div>
         </header>
 
-        {/* Section Jump Links */}
+        {/* Quick Navigation Drawer */}
         {sortedSections.length > 1 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 print:hidden no-scrollbar">
-            <span className="text-xs text-muted-foreground font-mono shrink-0 mr-1">JUMP:</span>
-            {sortedSections.map((sec, idx) => (
-              <a
-                key={sec.id || idx}
-                href={`#section-${idx + 1}`}
-                className="text-xs px-2.5 py-1 rounded-full bg-secondary/50 hover:bg-primary/20 text-muted-foreground hover:text-foreground transition-all shrink-0 border border-border/30"
-              >
-                {idx + 1}. {sec.title.split("&")[0].trim()}
-              </a>
-            ))}
-          </div>
+          <Card className="bg-card/40 border-border/40 print:hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase font-mono tracking-wider text-muted-foreground">
+                Document Contents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {sortedSections.map((section, idx) => (
+                  <a
+                    key={section.id || idx}
+                    href={`#section-${idx + 1}`}
+                    className="text-xs hover:text-primary transition-colors flex items-center gap-1.5 p-1.5 rounded hover:bg-muted/40"
+                  >
+                    <span className="font-mono text-muted-foreground text-[10px]">
+                      {String(idx + 1).padStart(2, "0")}.
+                    </span>
+                    <span className="truncate">{section.title}</span>
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Executive Summary */}
         {report.executive_summary && (
-          <Card className="bg-primary/5 border-primary/20 shadow-sm">
+          <Card className="border-primary/20 bg-primary/5">
             <CardHeader className="pb-2">
-              <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-                <Info className="w-4 h-4" />
-                <span>Executive Summary</span>
-              </div>
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
+                <FileText className="w-4 h-4" />
+                Executive Summary & Synthesis
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">
                 {report.executive_summary}
               </p>
             </CardContent>
@@ -342,15 +387,15 @@ export default function ReportViewerPage() {
                   )}
                 </div>
 
-                <div className="prose prose-neutral dark:prose-invert max-w-none text-foreground/85 leading-relaxed text-sm sm:text-base prose-table:text-xs prose-th:p-2 prose-td:p-2 prose-table:border prose-table:border-border/40 prose-th:bg-muted/30 prose-th:font-mono prose-th:text-[10px] sm:prose-th:text-xs prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-primary/30 prose-blockquote:bg-primary/5 prose-blockquote:rounded-r-md prose-blockquote:py-1 prose-blockquote:px-4 prose-strong:text-foreground prose-hr:border-border/30 overflow-x-auto">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{section.content}</ReactMarkdown>
+                <div className="prose prose-neutral dark:prose-invert max-w-none text-foreground/85 leading-relaxed text-sm sm:text-base overflow-x-auto">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{section.content}</ReactMarkdown>
                 </div>
               </section>
             ))}
           </div>
         ) : report.full_content ? (
-          <div className="prose prose-neutral dark:prose-invert max-w-none text-foreground/90 leading-relaxed text-sm sm:text-base prose-table:text-xs prose-a:text-primary overflow-x-auto">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{report.full_content}</ReactMarkdown>
+          <div className="prose prose-neutral dark:prose-invert max-w-none text-foreground/90 leading-relaxed text-sm sm:text-base overflow-x-auto">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{report.full_content}</ReactMarkdown>
           </div>
         ) : null}
 

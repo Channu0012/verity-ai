@@ -177,12 +177,48 @@ export default function ResearchWorkspace() {
     const status = research.status;
     if (status === "completed" || status === "failed") return;
 
+    // Fast reactive polling (650ms) for snappy stage updates
     const interval = setInterval(() => {
       loadResearch(session.access_token);
-    }, 3000);
+    }, 650);
 
     return () => clearInterval(interval);
   }, [session, research, loadResearch]);
+
+  // Markdown component overrides for rich, professional reports
+  const markdownComponents = {
+    a: ({ node, ...props }: any) => (
+      <a
+        {...props}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-sky-400 hover:text-sky-300 underline underline-offset-4 decoration-sky-400/40 hover:decoration-sky-400 font-medium transition-colors"
+      />
+    ),
+    table: ({ node, ...props }: any) => (
+      <div className="w-full overflow-x-auto my-4 rounded-xl border border-border/70 bg-card/60 shadow-sm">
+        <table {...props} className="w-full text-xs text-left border-collapse" />
+      </div>
+    ),
+    th: ({ node, ...props }: any) => (
+      <th
+        {...props}
+        className="px-3.5 py-2.5 bg-muted/60 text-foreground font-semibold text-[11px] uppercase tracking-wider border-b border-border/60"
+      />
+    ),
+    td: ({ node, ...props }: any) => (
+      <td
+        {...props}
+        className="px-3.5 py-2.5 text-foreground/85 border-b border-border/30 align-top"
+      />
+    ),
+    blockquote: ({ node, ...props }: any) => (
+      <blockquote
+        {...props}
+        className="border-l-4 border-sky-400 bg-sky-500/[0.06] rounded-r-xl py-3 px-4 my-3 text-foreground/90 italic border-y border-r border-border/30"
+      />
+    ),
+  };
 
   // Handle Grounded Chat Submit
   async function handleSendChat(e?: React.FormEvent, customMsg?: string) {
@@ -492,12 +528,12 @@ export default function ResearchWorkspace() {
                         {sec.title}
                       </h2>
                       <div className="text-foreground/90 leading-relaxed text-sm sm:text-base">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{sec.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{sec.content}</ReactMarkdown>
                       </div>
                     </div>
                   ))
               ) : (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{report?.full_content || ""}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{report?.full_content || ""}</ReactMarkdown>
               )}
             </article>
           </div>
@@ -685,12 +721,12 @@ export default function ResearchWorkspace() {
                                   </Badge>
                                 </h2>
                                 <div className="text-foreground/90 leading-relaxed text-xs sm:text-sm overflow-x-auto">
-                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{sec.content}</ReactMarkdown>
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{sec.content}</ReactMarkdown>
                                 </div>
                               </div>
                             ))
                         ) : (
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{report.full_content || ""}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{report.full_content || ""}</ReactMarkdown>
                         )}
                       </article>
                     </ScrollArea>
