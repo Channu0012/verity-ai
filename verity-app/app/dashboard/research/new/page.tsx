@@ -36,28 +36,35 @@ import { api } from "@/lib/api";
 const modes = [
   {
     id: "quick",
-    name: "Quick",
+    name: "Fast Fact-Check",
     icon: Zap,
-    description: "Fast exploratory research. 3-4 sub-questions, high-speed synthesis.",
-    time: "30-60 seconds",
-    color: "border-yellow-500/30 hover:border-yellow-500/50",
-  },
-  {
-    id: "standard",
-    name: "Standard",
-    icon: BarChart3,
-    description: "Balanced research with thorough evidence analysis and citation audit.",
-    time: "1-3 minutes",
+    description: "Multi-engine empirical claim verification with sub-second retrieval.",
+    time: "~2 seconds",
     color: "border-sky-500/30 hover:border-sky-500/50",
   },
   {
     id: "deep",
-    name: "Deep",
+    name: "Deep Dialectic",
     icon: Sparkles,
-    description: "Multi-step research with extensive cross-source contradiction checks.",
-    time: "3-5 minutes",
+    description: "Comprehensive dossier with pro vs con dialectic analysis & roadmap.",
+    time: "~2.5 seconds",
     color: "border-purple-500/30 hover:border-purple-500/50",
   },
+  {
+    id: "academic",
+    name: "Academic Diligence",
+    icon: BarChart3,
+    description: "Targeted CrossRef DOI resolution, peer review scoring & citations.",
+    time: "~2.5 seconds",
+    color: "border-emerald-500/30 hover:border-emerald-500/50",
+  },
+];
+
+const inquiryStarters = [
+  "Compare PostgreSQL vs MongoDB for high-throughput transactional analytics",
+  "Quantum Computing error correction thresholds in surface codes",
+  "What are the proven mechanisms and health benefits of intermittent fasting?",
+  "CRISPR-Cas9 off-target mutation mitigation mechanisms",
 ];
 
 export default function NewResearchPage() {
@@ -282,6 +289,25 @@ export default function NewResearchPage() {
             <div className="flex items-center justify-between text-xs text-white/40 mt-2 font-mono">
               <span>Detailed inquiries produce higher-fidelity citations.</span>
               <span>{question.length}/2000</span>
+            </div>
+
+            {/* Curated Inquiry Starters */}
+            <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-white/40 block">
+                💡 Quick Starters (1-Click Try):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {inquiryStarters.map((starter, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setQuestion(starter)}
+                    className="text-left text-xs px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-sky-500/10 border border-white/10 hover:border-sky-500/30 text-white/70 hover:text-sky-300 transition-all cursor-pointer"
+                  >
+                    {starter}
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
 

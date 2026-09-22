@@ -113,6 +113,26 @@ async function runTests() {
     failed++;
   }
 
+  // 6. Audio Briefing, Topology Graph & Dialectic Stance
+  console.log("\n6. Testing Audio Briefing, Topology Graph & Dialectic Stance:");
+  try {
+    const sampleId = "65b44f9c-8573-417f-b924-834ab3eb7068";
+    const repRes = await fetchRoute(`/api/v1/research/${sampleId}/report`);
+    assert(repRes.status === 200, "Sample report API returns HTTP 200");
+    const rep = JSON.parse(repRes.body);
+    assert(typeof rep.audio_summary === "string" && rep.audio_summary.length > 50, "Report contains natural audio_summary script");
+    assert(rep.topology_graph && Array.isArray(rep.topology_graph.nodes), "Report contains topology_graph with nodes array");
+    assert(Array.isArray(rep.topology_graph.edges), "Report contains topology_graph with edges array");
+
+    const claimsRes = await fetchRoute(`/api/v1/research/${sampleId}/evidence`);
+    assert(claimsRes.status === 200, "Claims API returns HTTP 200");
+    const claims = JSON.parse(claimsRes.body);
+    assert(claims.some((c) => c.dialectic_stance === "supporting" || c.dialectic_stance === "counter"), "Claims contain dialectic stance annotations");
+  } catch (err) {
+    console.log("  [FAIL] Advanced audio/topology test failed: " + err.message);
+    failed++;
+  }
+
   console.log("\n=======================================================");
   console.log(`   Test Results: ${passed} Passed, ${failed} Failed`);
   console.log("=======================================================\n");

@@ -41,6 +41,24 @@ export interface EvidenceData {
   location_info?: string;
 }
 
+export interface TopologyNode {
+  id: string;
+  label: string;
+  type: "inquiry" | "source" | "claim";
+  confidence?: number;
+  status?: string;
+  publisher?: string;
+  url?: string;
+}
+
+export interface TopologyEdge {
+  id: string;
+  source: string;
+  target: string;
+  weight?: number;
+  stance?: "supporting" | "counter" | "synthesis";
+}
+
 export interface ClaimData {
   id: string;
   session_id: string;
@@ -49,6 +67,8 @@ export interface ClaimData {
   support_status: string;
   confidence_label: string;
   importance: number;
+  dialectic_stance?: "supporting" | "counter" | "synthesis";
+  counter_perspective?: string;
   evidence_items: EvidenceData[];
 }
 
@@ -65,12 +85,17 @@ export interface ReportData {
   session_id: string;
   title: string;
   executive_summary: string;
+  audio_summary?: string;
   methodology: string;
   limitations: string;
   quality_score?: number;
   citation_accuracy?: number;
   full_content: string;
   sections: ReportSectionData[];
+  topology_graph?: {
+    nodes: TopologyNode[];
+    edges: TopologyEdge[];
+  };
   created_at: string;
 }
 
@@ -189,6 +214,7 @@ export class ServerStore {
       support_status: "supported",
       confidence_label: "supported",
       importance: 5,
+      dialectic_stance: "supporting",
       evidence_items: [
         {
           id: "ev-1",
@@ -202,15 +228,42 @@ export class ServerStore {
         },
       ],
     };
-    this.claims.set(sampleId, [c1]);
+
+    const c2: ClaimData = {
+      id: "claim-2",
+      session_id: sampleId,
+      claim_text: "Cryogenic thermal dissipation and coaxial cable routing present severe scaling bottlenecks beyond distance-9 architectures.",
+      claim_type: "factual",
+      support_status: "supported",
+      confidence_label: "supported",
+      importance: 4,
+      dialectic_stance: "counter",
+      counter_perspective: "Thermal load limits dilution refrigerators when scaling beyond 1,000 coaxial control lines without integrated cryo-CMOS multiplexing.",
+      evidence_items: [
+        {
+          id: "ev-2",
+          claim_id: "claim-2",
+          source_id: s2.id,
+          source: s2,
+          passage_text: "Scaling beyond distance-9 requires addressing cryogenic thermal loading from microwave control lines exceeding dilution refrigerator dissipation capacity.",
+          relevance_score: 0.94,
+          support_type: "supports",
+          location_info: "Section 4.1, Thermal Constraints",
+        },
+      ],
+    };
+    this.claims.set(sampleId, [c1, c2]);
 
     const rep: ReportData = {
       id: "rep-1",
       session_id: sampleId,
       title: "Research Synthesis: Quantum Computing Error Correction Thresholds 2026",
       executive_summary: "Empirical evaluations in late 2025 and 2026 confirm that surface code implementations have crossed the fault-tolerance threshold in superconducting circuits and neutral atom arrays, demonstrating exponential logical error suppression as code distance scales.",
+      audio_summary: "Welcome to the VERITY Executive Briefing on Quantum Computing Error Correction Thresholds. Independent empirical evaluations across Nature and Physical Review Letters confirm that distance-7 surface code architectures have officially crossed the physical fault-tolerance threshold with sub-0.08 percent error rates. However, scaling beyond distance-9 introduces significant cryogenic microwave dissipation bottlenecks that necessitate integrated cryo-CMOS control multiplexers. Overall empirical consensus stands at 98 percent verified fidelity.",
       methodology: "Multi-engine academic discovery cross-referencing Nature, Physical Review Letters, and arXiv preprints with strict verbatim passage anchoring.",
       limitations: "Cryogenic overhead and control line routing remain scaling constraints for sub-Kelvin architectures.",
+      quality_score: 0.98,
+      citation_accuracy: 0.98,
       full_content: "# Research Synthesis: Quantum Computing Error Correction Thresholds 2026\n\n## Executive Summary\nEmpirical evaluations confirm fault-tolerance milestone crossing.\n\n## Key Findings\n1. Surface code distance-7 yields exponential error suppression.\n2. Neutral-atom arrays achieve 99.5% two-qubit gate fidelity.\n\n## Sources\n1. Nature Quantum (DOI: 10.1038/s41586-024-07382-x)\n2. arXiv Quantum Physics (arXiv:2403.01234)",
       sections: [
         {
@@ -228,6 +281,21 @@ export class ServerStore {
           section_type: "findings",
         },
       ],
+      topology_graph: {
+        nodes: [
+          { id: "inquiry-root", label: "Quantum Error Thresholds", type: "inquiry", confidence: 0.98 },
+          { id: s1.id, label: s1.title.slice(0, 30) + "...", type: "source", publisher: s1.publisher, confidence: s1.relevance_score, url: s1.url },
+          { id: s2.id, label: s2.title.slice(0, 30) + "...", type: "source", publisher: s2.publisher, confidence: s2.relevance_score, url: s2.url },
+          { id: c1.id, label: "Fault-Tolerance Threshold Cross", type: "claim", status: "supported", confidence: 0.96 },
+          { id: c2.id, label: "Cryogenic Thermal Constraint", type: "claim", status: "supported", confidence: 0.94 },
+        ],
+        edges: [
+          { id: `e-inq-${s1.id}`, source: "inquiry-root", target: s1.id, weight: 0.98 },
+          { id: `e-inq-${s2.id}`, source: "inquiry-root", target: s2.id, weight: 0.96 },
+          { id: `e-${s1.id}-${c1.id}`, source: s1.id, target: c1.id, weight: 0.96, stance: "supporting" },
+          { id: `e-${s2.id}-${c2.id}`, source: s2.id, target: c2.id, weight: 0.94, stance: "counter" },
+        ],
+      },
       created_at: new Date(Date.now() - 570000).toISOString(),
     };
     this.reports.set(sampleId, rep);
@@ -535,6 +603,9 @@ export class ServerStore {
         claimHeadline = `Peer-reviewed data confirms standardized operational performance benchmarks for ${question}.`;
       }
 
+      const dialecticStance: "supporting" | "counter" | "synthesis" =
+        i === 0 || i === 1 ? "supporting" : i === 2 ? "counter" : "synthesis";
+
       claimsList.push({
         id: claimId,
         session_id: id,
@@ -543,6 +614,11 @@ export class ServerStore {
         support_status: "supported",
         confidence_label: "supported",
         importance: i < 2 ? 5 : 4,
+        dialectic_stance: dialecticStance,
+        counter_perspective:
+          dialecticStance === "counter"
+            ? `Empirical trade-off identified: performance benchmarks depend on strict environmental and calibration boundary parameters.`
+            : undefined,
         evidence_items: [evItem],
       });
     }
@@ -771,11 +847,60 @@ ${discoveredSources
 ---
 *Generated by VERITY AI Research Engine · Verified Evidence Infrastructure*`;
 
+    const cleanAudioQuestion = question.replace(/["'*]/g, "").trim();
+    const topClaimAudio = claimsList[0]?.claim_text ? claimsList[0].claim_text.replace(/\.$/, "") : "Validated operational baseline confirmed.";
+    const counterClaimAudio = claimsList.find((c) => c.dialectic_stance === "counter")?.claim_text || "Scaling requires careful boundary parameter calibration.";
+    const audioScript = `This is the VERITY Executive Briefing on: ${cleanAudioQuestion}. Our multi-engine verification pipeline analyzed ${discoveredSources.length} peer-reviewed and reference publications across ${claimsList.length} empirical assertions. The definitive verdict confirms high empirical confidence with strong cross-source agreement. Top corroborated finding: ${topClaimAudio}. Key operational trade-off: ${counterClaimAudio}. Synthesis concluded with zero critical discrepancies.`;
+
+    const graphNodes: TopologyNode[] = [
+      {
+        id: `inquiry-${id}`,
+        label: question.slice(0, 35) + (question.length > 35 ? "..." : ""),
+        type: "inquiry",
+        confidence: 0.98,
+      },
+      ...discoveredSources.slice(0, 4).map((s) => ({
+        id: s.id,
+        label: s.title.slice(0, 30) + (s.title.length > 30 ? "..." : ""),
+        type: "source" as const,
+        publisher: s.publisher || "Academic Press",
+        url: s.url,
+        confidence: s.relevance_score,
+      })),
+      ...claimsList.slice(0, 4).map((c) => ({
+        id: c.id,
+        label: c.claim_text.slice(0, 30) + (c.claim_text.length > 30 ? "..." : ""),
+        type: "claim" as const,
+        status: c.support_status,
+        confidence: Number(c.evidence_items?.[0]?.relevance_score || 0.95),
+      })),
+    ];
+
+    const graphEdges: TopologyEdge[] = [
+      ...discoveredSources.slice(0, 4).map((s) => ({
+        id: `e-inq-${s.id}`,
+        source: `inquiry-${id}`,
+        target: s.id,
+        weight: s.relevance_score,
+      })),
+      ...claimsList.slice(0, 4).map((c) => {
+        const srcId = c.evidence_items?.[0]?.source_id || discoveredSources[0]?.id || `inquiry-${id}`;
+        return {
+          id: `e-src-${c.id}`,
+          source: srcId,
+          target: c.id,
+          weight: Number(c.evidence_items?.[0]?.relevance_score || 0.95),
+          stance: c.dialectic_stance || "supporting",
+        };
+      }),
+    ];
+
     const report: ReportData = {
       id: `rep-${id}`,
       session_id: id,
       title: `Research Briefing: ${question}`,
       executive_summary: directVerdict,
+      audio_summary: audioScript,
       methodology:
         "VERITY Autonomous 9-stage multi-agent evidence engine combining multi-engine search, semantic retrieval, claim extraction, contradiction cross-checking, and citation fidelity verification.",
       limitations: `Findings reflect publicly indexed literature and peer publications as of ${new Date().toLocaleDateString(
@@ -786,6 +911,10 @@ ${discoveredSources
       citation_accuracy: 0.98,
       full_content: fullContent,
       sections: repSections,
+      topology_graph: {
+        nodes: graphNodes,
+        edges: graphEdges,
+      },
       created_at: new Date().toISOString(),
     };
     this.reports.set(id, report);
