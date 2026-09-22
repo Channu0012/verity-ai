@@ -73,18 +73,26 @@ class DocumentIngestionPipeline:
         source_id: str,
         url: str | None = None,
         content: str = "",
+        user_id: uuid.UUID | None = None,
+        fallback_snippet: str = "",
     ):
-        """Ingest content from a web source (not a file upload)."""
+        """Ingest content from a web source (not a file upload) with fallback to snippet."""
         if not content and url:
-            content = await self._fetch_url_content(url)
+            try:
+                content = await self._fetch_url_content(url)
+            except Exception as e:
+                logger.warning("Scraping URL failed, using snippet fallback", url=url, error=str(e))
+
+        if not content and fallback_snippet:
+            content = fallback_snippet
 
         if not content:
             return
 
         # Create a document record for this web content
         doc = Document(
-            source_id=uuid.UUID(source_id),
-            user_id=uuid.UUID("00000000-0000-0000-0000-000000000000"),  # System user
+            source_id=uuid.UUID(source_id) if source_id else None,
+            user_id=user_id,
             filename=url or "web_content",
             file_type="html",
             file_size=len(content),

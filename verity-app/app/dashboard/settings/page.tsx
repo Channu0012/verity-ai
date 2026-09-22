@@ -65,6 +65,55 @@ export default function SettingsPage() {
         </Card>
 
         <Card className="glass">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" /> Research Engine Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="font-medium">Primary AI Model</p>
+                <p className="text-xs text-muted-foreground">Adversarial reasoning & synthesis</p>
+              </div>
+              <span className="font-mono text-xs px-2.5 py-1 rounded bg-primary/10 text-primary border border-primary/20">
+                gemini-3-8-flash (KIE.ai)
+              </span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="font-medium">Scholarly Search Engine</p>
+                <p className="text-xs text-muted-foreground">Peer-reviewed literature & DOI validation</p>
+              </div>
+              <span className="font-mono text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                CrossRef API + arXiv
+              </span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="font-medium">Live Web Search</p>
+                <p className="text-xs text-muted-foreground">Real-time news & industry reporting</p>
+              </div>
+              <span className="font-mono text-xs px-2.5 py-1 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                DuckDuckGo HTML Multi-Engine
+              </span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="font-medium">Citation Verification Gate</p>
+                <p className="text-xs text-muted-foreground">Adversarial claim-to-passage audit</p>
+              </div>
+              <span className="font-mono text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Strict Grounding Active
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass">
           <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" />Security</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">

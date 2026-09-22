@@ -143,12 +143,21 @@ class ResearchOrchestrator:
         from app.ingestion.pipeline import DocumentIngestionPipeline
         pipeline = DocumentIngestionPipeline(self.db)
 
-        for source_data in sources:
+        # Ingest top 12 sources for depth without excessive latency
+        for source_data in sources[:12]:
             try:
+                snippet = ""
+                if isinstance(source_data.get("metadata_json"), dict):
+                    snippet = source_data["metadata_json"].get("snippet", "")
+                elif isinstance(source_data.get("snippet"), str):
+                    snippet = source_data["snippet"]
+
                 await pipeline.ingest_from_url(
                     source_id=source_data.get("source_id"),
                     url=source_data.get("url"),
                     content=source_data.get("content", ""),
+                    user_id=self.session.user_id,
+                    fallback_snippet=snippet,
                 )
             except Exception as e:
                 logger.warning("Ingestion failed for source", url=source_data.get("url"), error=str(e))

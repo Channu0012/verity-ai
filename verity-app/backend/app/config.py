@@ -48,11 +48,14 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = Field(default=50)
 
     # --- AI Config ---
-    default_model: str = Field(default="gpt-4o")
+    kieai_base_url: str = Field(default="https://api.kie.ai/gemini-3-8-flash-openai/v1")
+    kieai_api_key: str = Field(default="ec5e52c09a1da2a9e35565a0ca428be7")
+    kieai_model: str = Field(default="gemini-3-8-flash")
+    default_model: str = Field(default="gemini-3-8-flash")
     embedding_model: str = Field(default="text-embedding-3-small")
     embedding_dimensions: int = Field(default=1536)
-    fast_model: str = Field(default="gpt-4o-mini")
-    strong_model: str = Field(default="gpt-4o")
+    fast_model: str = Field(default="gemini-3-8-flash")
+    strong_model: str = Field(default="gemini-3-8-flash")
     fallback_provider: str = Field(default="gemini")
 
     # --- Rate Limits ---

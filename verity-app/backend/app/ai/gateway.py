@@ -40,13 +40,23 @@ class AIGateway:
 
     def _init_providers(self):
         """Initialize available providers."""
-        openai = OpenAIProvider()
-        gemini = GeminiProvider()
+        # Primary live provider: KIE.ai OpenAI-compatible endpoint with Gemini Flash
+        kie_key = settings.kieai_api_key or settings.gemini_api_key or settings.search_api_key
+        if kie_key and settings.kieai_base_url:
+            self._providers["kieai"] = OpenAIProvider(
+                api_key=kie_key,
+                base_url=settings.kieai_base_url,
+                name="kieai",
+            )
 
         if settings.openai_api_key:
-            self._providers["openai"] = openai
+            self._providers["openai"] = OpenAIProvider(
+                api_key=settings.openai_api_key,
+                name="openai",
+            )
+
         if settings.gemini_api_key:
-            self._providers["gemini"] = gemini
+            self._providers["gemini"] = GeminiProvider()
 
         if not self._providers:
             logger.warning("No AI providers configured — AI features will be unavailable")
@@ -56,14 +66,15 @@ class AIGateway:
         if preferred and preferred in self._providers:
             return self._providers[preferred]
 
-        # Default to OpenAI if available, else first available
-        if "openai" in self._providers:
-            return self._providers["openai"]
+        # Prioritize live working KIE.ai proxy, then OpenAI, then Gemini
+        for candidate in ["kieai", "openai", "gemini"]:
+            if candidate in self._providers:
+                return self._providers[candidate]
 
         if self._providers:
             return next(iter(self._providers.values()))
 
-        raise RuntimeError("No AI providers available. Configure OPENAI_API_KEY or GEMINI_API_KEY.")
+        raise RuntimeError("No AI providers available. Configure KIEAI_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY.")
 
     def _get_fallback_provider(self, failed_provider: str) -> AIProvider | None:
         """Get a fallback provider different from the one that failed."""
@@ -345,6 +356,10 @@ class AIGateway:
         """Generate embeddings with batching support and local fallback."""
         try:
             ai_provider = self._get_provider(provider)
+            if ai_provider.name == "kieai":
+                # KIE.ai proxy does not support /embeddings endpoint; use local deterministic
+                raise NotImplementedError("KIE.ai does not provide embeddings endpoint")
+
             if len(texts) <= batch_size:
                 return await ai_provider.embed(texts=texts, model=model, **kwargs)
 

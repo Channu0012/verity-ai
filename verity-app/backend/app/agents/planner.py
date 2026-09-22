@@ -92,7 +92,16 @@ class PlannerAgent:
 
             plan = response.structured_output
             if not plan:
-                plan = json.loads(response.content)
+                try:
+                    raw = (response.content or "").strip()
+                    if "```" in raw:
+                        parts = raw.split("```")
+                        raw = parts[1] if len(parts) > 1 else raw
+                        if raw.startswith("json"):
+                            raw = raw[4:].strip()
+                    plan = json.loads(raw)
+                except Exception:
+                    plan = {}
 
             # Save tasks to database
             tasks = plan.get("tasks", [])

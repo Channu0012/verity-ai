@@ -65,7 +65,7 @@ class EvidenceAgent:
             return AgentResult(status="success", result=[], metadata={"reason": "no evidence to analyze"})
 
         # Build evidence context (respect token budget)
-        evidence_text = self._build_evidence_context(evidence_chunks[:30])
+        evidence_text = self._build_evidence_context(evidence_chunks[:10])
 
         messages = [
             {"role": "system", "content": EVIDENCE_SYSTEM_PROMPT},
@@ -87,8 +87,20 @@ class EvidenceAgent:
                 session_id=self.session.id,
             )
 
-            data = response.structured_output or json.loads(response.content)
-            claims_data = data.get("claims", [])
+            data = response.structured_output
+            if not data:
+                try:
+                    raw = (response.content or "").strip()
+                    if "```" in raw:
+                        parts = raw.split("```")
+                        raw = parts[1] if len(parts) > 1 else raw
+                        if raw.startswith("json"):
+                            raw = raw[4:].strip()
+                    data = json.loads(raw)
+                except Exception:
+                    data = {}
+
+            claims_data = data.get("claims", []) if isinstance(data, dict) else []
 
             # Get sources for this session
             from sqlalchemy import select

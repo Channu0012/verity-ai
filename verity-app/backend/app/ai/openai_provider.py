@@ -20,20 +20,24 @@ COST_MAP = {
     "gpt-4o": {"input": 2.50, "output": 10.00},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
+    "gemini-3-8-flash": {"input": 0.10, "output": 0.40},
     "text-embedding-3-small": {"input": 0.02, "output": 0.0},
     "text-embedding-3-large": {"input": 0.13, "output": 0.0},
 }
 
 
 class OpenAIProvider(AIProvider):
-    """OpenAI API provider."""
+    """OpenAI API provider, supporting custom base_url proxies (e.g. KIE.ai)."""
 
-    def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+    def __init__(self, api_key: str | None = None, base_url: str | None = None, name: str = "openai"):
+        self._name = name
+        self.api_key = api_key or settings.openai_api_key
+        self.base_url = base_url
+        self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url) if self.api_key else None
 
     @property
     def name(self) -> str:
-        return "openai"
+        return self._name
 
     async def generate(
         self,
@@ -59,35 +63,49 @@ class OpenAIProvider(AIProvider):
                 "max_tokens": max_tokens,
             }
 
-            if response_format:
+            if response_format and not self.base_url:
                 params["response_format"] = response_format
 
             response = await self.client.chat.completions.create(**params)
 
             latency_ms = int((time.time() - start_time) * 1000)
-            usage = response.usage
+
+            # Check for proxy-level error response
+            if not getattr(response, "choices", None) or len(response.choices) == 0:
+                msg = getattr(response, "msg", None) or getattr(response, "error", "No completion choices returned")
+                raise RuntimeError(f"Provider {self.name} returned error: {msg}")
+
+            usage = getattr(response, "usage", None)
 
             # Calculate cost
             cost_rates = COST_MAP.get(model, {"input": 0.0, "output": 0.0})
             estimated_cost = (
                 (usage.prompt_tokens * cost_rates["input"] / 1_000_000) +
                 (usage.completion_tokens * cost_rates["output"] / 1_000_000)
-            ) if usage else 0.0
+            ) if usage and hasattr(usage, "prompt_tokens") else 0.0
 
             content = response.choices[0].message.content or ""
 
-            # Try to parse structured output
+            # Try to parse structured output (clean markdown code blocks if wrapped)
             structured = None
-            if response_format and response_format.get("type") == "json_object":
-                try:
-                    structured = json.loads(content)
-                except json.JSONDecodeError:
-                    pass
+            raw_text = content.strip()
+            if raw_text.startswith("```"):
+                lines = raw_text.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                raw_text = "\n".join(lines).strip()
+
+            try:
+                structured = json.loads(raw_text)
+            except Exception:
+                pass
 
             return AIResponse(
                 content=content,
                 model=model,
-                provider="openai",
+                provider=self.name,
                 prompt_tokens=usage.prompt_tokens if usage else 0,
                 completion_tokens=usage.completion_tokens if usage else 0,
                 total_tokens=usage.total_tokens if usage else 0,

@@ -54,7 +54,18 @@ class ContradictionAgent:
                 session_id=self.session.id,
             )
 
-            data = response.structured_output or json.loads(response.content)
+            data = response.structured_output
+            if not data:
+                try:
+                    raw = (response.content or "").strip()
+                    if "```" in raw:
+                        parts = raw.split("```")
+                        raw = parts[1] if len(parts) > 1 else raw
+                        if raw.startswith("json"):
+                            raw = raw[4:].strip()
+                    data = json.loads(raw)
+                except Exception:
+                    data = {}
             contradictions = data.get("contradictions", [])
 
             # Load claim IDs from database

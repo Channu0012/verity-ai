@@ -116,7 +116,18 @@ class SynthesisAgent:
                 session_id=self.session.id,
             )
 
-            data = response.structured_output or json.loads(response.content)
+            data = response.structured_output
+            if not data:
+                try:
+                    raw = (response.content or "").strip()
+                    if "```" in raw:
+                        parts = raw.split("```")
+                        raw = parts[1] if len(parts) > 1 else raw
+                        if raw.startswith("json"):
+                            raw = raw[4:].strip()
+                    data = json.loads(raw)
+                except Exception:
+                    data = {}
 
             # Build full markdown content
             full_content = self._build_full_markdown(data, sources)
@@ -162,11 +173,11 @@ class SynthesisAgent:
         lines = []
 
         lines.append("SOURCES:")
-        for i, s in enumerate(sources):
+        for i, s in enumerate(sources[:10]):
             lines.append(f"[Source {i+1}] {s.title} ({s.source_type}) - {s.url or 'N/A'}")
 
         lines.append("\nCLAIMS AND EVIDENCE:")
-        for claim in claims[:20]:  # Limit for token budget
+        for claim in claims[:8]:  # Limit for token budget
             lines.append(f"\nClaim: {claim.claim_text}")
             lines.append(f"Status: {claim.support_status} | Type: {claim.claim_type}")
             for ev in claim.evidence_items[:5]:

@@ -47,3 +47,4 @@ next-app/
 
 .vercel
 .env*
+*.zip

@@ -57,6 +57,15 @@ export default function NewResearchPage() {
   const [error, setError] = useState("");
   const [showNewProject, setShowNewProject] = useState(false);
 
+  // Check URL search parameters on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q) setQuestion(q);
+    }
+  }, []);
+
   const loadProjects = useCallback(async () => {
     try {
       const supabase = createClient();
@@ -68,7 +77,19 @@ export default function NewResearchPage() {
 
       const data = await api.getProjects(session.access_token) as any[];
       setProjects(data);
-      if (data.length > 0) setSelectedProject(data[0].id);
+
+      if (data && data.length > 0) {
+        setSelectedProject(data[0].id);
+      } else {
+        // Auto-create default project so user is never blocked
+        try {
+          const defProj = await api.createProject(session.access_token, "General Research") as any;
+          setProjects([defProj]);
+          setSelectedProject(defProj.id);
+        } catch (projErr) {
+          console.error("Auto project creation failed", projErr);
+        }
+      }
     } catch (err) {
       console.error("Failed to load projects", err);
     }
