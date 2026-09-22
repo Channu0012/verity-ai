@@ -10,8 +10,7 @@ const inter = Inter({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://verity-ai-xi.vercel.app");
+  process.env.NEXT_PUBLIC_SITE_URL || "https://verity-ai-xi.vercel.app";
 
 export const viewport: Viewport = {
   themeColor: "#000000",
