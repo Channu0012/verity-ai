@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { clientCache } from "@/lib/client-cache";
 
 interface ReportItem {
   id: string;
@@ -28,6 +29,7 @@ interface ReportItem {
   citation_accuracy?: number;
   created_at: string;
   sections?: any[];
+  full_content?: string;
 }
 
 export default function ReportsPage() {
@@ -48,8 +50,24 @@ export default function ReportsPage() {
       try {
         const authToken = "user-token";
         setToken(authToken);
-        const data = await api.getReports(authToken);
-        setReports(data as ReportItem[]);
+
+        const localReports = clientCache.getUserReports();
+        const data = await api.getReports(authToken).catch(() => []);
+        const serverReports = Array.isArray(data) ? (data as ReportItem[]) : [];
+
+        const reportMap = new Map<string, ReportItem>();
+        for (const r of localReports) {
+          if (r?.id) reportMap.set(r.id, r);
+        }
+        for (const r of serverReports) {
+          if (r?.id) reportMap.set(r.id, r);
+        }
+
+        const mergedReports = Array.from(reportMap.values()).sort(
+          (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
+
+        setReports(mergedReports);
       } catch (err) {
         console.error("Failed to load reports:", err);
       } finally {

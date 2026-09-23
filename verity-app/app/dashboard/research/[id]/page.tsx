@@ -51,6 +51,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { clientCache } from "@/lib/client-cache";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AudioBriefingPlayer } from "@/components/ui/audio-briefing-player";
@@ -123,12 +124,36 @@ export default function ResearchWorkspace() {
   const [dialecticView, setDialecticView] = useState<"all" | "supporting" | "counter">("all");
   const [evidenceCardOpen, setEvidenceCardOpen] = useState(false);
 
+  // Synchronously hydrate from browser cache on initial mount for instant UI
+  useEffect(() => {
+    const cached = clientCache.getResearchBundle(researchId);
+    if (cached) {
+      if (cached.session) setResearch(cached.session);
+      if (cached.report) setReport(cached.report);
+      if (cached.sources?.length) {
+        setSources(cached.sources);
+        setSelectedSource(cached.sources[0]);
+      }
+      if (cached.claims?.length) {
+        setEvidence(cached.claims);
+        setSelectedClaim(cached.claims[0]);
+      }
+      if (cached.contradictions?.length) setContradictions(cached.contradictions);
+      if (cached.chats?.length) setChatMessages(cached.chats);
+      setLoading(false);
+      // Quietly sync with current serverless instance
+      clientCache.syncToServer(cached);
+    }
+  }, [researchId]);
+
   const loadResearch = useCallback(
     async (token: string) => {
       try {
         const data = await api.getResearch(token, researchId);
-        setResearch(data);
-        if ((data as any)?.is_favorite) setIsFavorite(true);
+        if (data) {
+          setResearch(data);
+          if ((data as any)?.is_favorite) setIsFavorite(true);
+        }
 
         const [src, ev, rep, con] = await Promise.allSettled([
           api.getResearchSources(token, researchId),
@@ -137,18 +162,41 @@ export default function ResearchWorkspace() {
           api.getResearchContradictions(token, researchId),
         ]);
 
-        if (src.status === "fulfilled") {
-          const sList = src.value as any[];
+        let sList: any[] = [];
+        let eList: any[] = [];
+        let rVal: any = null;
+        let cList: any[] = [];
+
+        if (src.status === "fulfilled" && Array.isArray(src.value) && src.value.length > 0) {
+          sList = src.value as any[];
           setSources(sList);
-          if (!selectedSource && sList.length > 0) setSelectedSource(sList[0]);
+          if (!selectedSource) setSelectedSource(sList[0]);
         }
-        if (ev.status === "fulfilled") {
-          const eList = ev.value as any[];
+        if (ev.status === "fulfilled" && Array.isArray(ev.value) && ev.value.length > 0) {
+          eList = ev.value as any[];
           setEvidence(eList);
-          if (!selectedClaim && eList.length > 0) setSelectedClaim(eList[0]);
+          if (!selectedClaim) setSelectedClaim(eList[0]);
         }
-        if (rep.status === "fulfilled") setReport(rep.value);
-        if (con.status === "fulfilled") setContradictions(con.value as any[]);
+        if (rep.status === "fulfilled" && rep.value) {
+          rVal = rep.value;
+          setReport(rVal);
+        }
+        if (con.status === "fulfilled" && Array.isArray(con.value)) {
+          cList = con.value as any[];
+          setContradictions(cList);
+        }
+
+        // Save fresh server data to client cache
+        if (data || rVal) {
+          clientCache.saveResearchBundle({
+            id: researchId,
+            session: data || { id: researchId, status: "completed", progress: 1.0 },
+            report: rVal,
+            sources: sList,
+            claims: eList,
+            contradictions: cList,
+          });
+        }
 
         // Load chat history
         fetch(`/api/v1/research/${researchId}/chat`)
@@ -160,7 +208,14 @@ export default function ResearchWorkspace() {
           })
           .catch(() => {});
       } catch (err) {
-        console.error("Load error:", err);
+        console.warn("API load error, checking resilient client cache:", err);
+        const cached = clientCache.getResearchBundle(researchId);
+        if (cached?.session) {
+          setResearch(cached.session);
+          if (cached.report) setReport(cached.report);
+          if (cached.sources?.length) setSources(cached.sources);
+          if (cached.claims?.length) setEvidence(cached.claims);
+        }
       } finally {
         setLoading(false);
       }

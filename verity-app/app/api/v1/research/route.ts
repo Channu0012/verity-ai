@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { serverStore, ResearchSessionData } from "@/lib/server-store";
 
 export async function GET(req: NextRequest) {
+  serverStore.loadFromDisk();
   const url = new URL(req.url);
   const projectId = url.searchParams.get("project_id");
 
@@ -29,13 +30,24 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await serverStore.createAndExecuteResearch(projectId, question, mode);
+    const report = serverStore.reports.get(session.id);
+    const sources = serverStore.sources.get(session.id) || [];
+    const claims = serverStore.claims.get(session.id) || [];
+    const contradictions = serverStore.contradictions.get(session.id) || [];
+    const chats = serverStore.chats.get(session.id) || [];
 
     return NextResponse.json(
       {
         id: session.id,
         research_id: session.id,
         status: session.status,
-        message: "Research has been queued for processing",
+        message: "Research completed successfully",
+        session,
+        report,
+        sources,
+        claims,
+        contradictions,
+        chats,
       },
       { status: 201 }
     );

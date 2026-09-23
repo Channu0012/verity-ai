@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auth, type AuthUser } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { clientCache } from "@/lib/client-cache";
 import { VerityBrandLogo } from "@/components/ui/verity-logo";
 
 interface Project {
@@ -77,6 +78,8 @@ export default function DashboardPage() {
 
   async function loadData() {
     try {
+      const localSessions = clientCache.getUserSessions();
+
       const [projectsData, researchData] = await Promise.allSettled([
         api.getProjects("user-token"),
         api.listResearch("user-token"),
@@ -85,9 +88,24 @@ export default function DashboardPage() {
       if (projectsData.status === "fulfilled") {
         setProjects(projectsData.value as Project[]);
       }
-      if (researchData.status === "fulfilled") {
-        setResearch(researchData.value as Research[]);
+
+      const serverList = (researchData.status === "fulfilled" && Array.isArray(researchData.value))
+        ? (researchData.value as Research[])
+        : [];
+
+      const sessionMap = new Map<string, Research>();
+      for (const s of localSessions) {
+        if (s?.id) sessionMap.set(s.id, s);
       }
+      for (const s of serverList) {
+        if (s?.id) sessionMap.set(s.id, s);
+      }
+
+      const mergedList = Array.from(sessionMap.values()).sort(
+        (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
+      setResearch(mergedList);
     } catch (err) {
       console.error("Dashboard load error:", err);
     } finally {

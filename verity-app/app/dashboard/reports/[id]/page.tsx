@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { clientCache } from "@/lib/client-cache";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -56,14 +57,24 @@ export default function ReportViewerPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Check local client cache first for zero-delay hydration
+    const cachedReports = clientCache.getUserReports();
+    const cached = cachedReports.find((r) => r.id === reportId || r.session_id === reportId);
+    if (cached) {
+      setReport(cached as ReportDetail);
+      setLoading(false);
+    }
+
     async function load() {
       try {
         const authToken = typeof window !== "undefined" ? localStorage.getItem("verity_auth_user") ? "user-token" : "guest-token" : "guest-token";
         setToken(authToken);
         const data = await api.getReport(authToken, reportId);
-        setReport(data as ReportDetail);
+        if (data) {
+          setReport(data as ReportDetail);
+        }
       } catch (err) {
-        console.error("Failed to load report", err);
+        console.warn("Server report fetch failed, using cached report:", err);
       } finally {
         setLoading(false);
       }

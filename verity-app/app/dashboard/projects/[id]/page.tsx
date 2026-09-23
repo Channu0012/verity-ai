@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { clientCache } from "@/lib/client-cache";
 
 interface ProjectDetail {
   id: string;
@@ -61,12 +62,22 @@ export default function ProjectDetailPage() {
 
   const loadData = useCallback(async (authToken: string) => {
     try {
+      const localSessions = clientCache.getUserSessions().filter((s) => s.project_id === projectId);
       const [proj, res] = await Promise.all([
-        api.getProject(authToken, projectId),
-        api.listResearch(authToken, projectId),
+        api.getProject(authToken, projectId).catch(() => null),
+        api.listResearch(authToken, projectId).catch(() => []),
       ]);
-      setProject(proj as ProjectDetail);
-      setResearchList(res as ResearchSession[]);
+      if (proj) setProject(proj as ProjectDetail);
+
+      const serverList = Array.isArray(res) ? (res as ResearchSession[]) : [];
+      const sessionMap = new Map<string, ResearchSession>();
+      for (const s of localSessions) sessionMap.set(s.id, s);
+      for (const s of serverList) sessionMap.set(s.id, s);
+
+      const merged = Array.from(sessionMap.values()).sort(
+        (a, b) => new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime()
+      );
+      setResearchList(merged);
     } catch (err) {
       console.error("Failed to load project:", err);
     } finally {

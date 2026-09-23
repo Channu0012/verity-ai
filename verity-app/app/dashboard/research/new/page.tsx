@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { clientCache } from "@/lib/client-cache";
 
 const modes = [
   {
@@ -211,7 +212,26 @@ export default function NewResearchPage() {
 
       const targetId = result.research_id || result.id;
       if (targetId) {
-        router.push(`/dashboard/research/${targetId}`);
+        // Cache full research bundle for instant, zero-delay UI rendering on Vercel
+        clientCache.saveResearchBundle({
+          id: targetId,
+          session: result.session || {
+            id: targetId,
+            project_id: projId,
+            question: questionText.trim(),
+            mode: researchMode,
+            status: "completed",
+            progress: 1.0,
+            created_at: new Date().toISOString(),
+          },
+          report: result.report,
+          sources: result.sources || [],
+          claims: result.claims || [],
+          contradictions: result.contradictions || [],
+          chats: result.chats || [],
+        });
+
+        router.push(`/dashboard/research/${targetId}?q=${encodeURIComponent(questionText.trim())}`);
       } else {
         throw new Error("Invalid response from research engine");
       }
