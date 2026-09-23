@@ -199,6 +199,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark h-full antialiased scroll-smooth">
       <head>
         <link rel="canonical" href={SITE_URL} />
+        <link rel="preload" as="image" href="/hero-poster.webp" type="image/webp" />
+        <link rel="preload" as="video" href="/verity-hero.mp4" type="video/mp4" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrgData) }}

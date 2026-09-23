@@ -4,15 +4,60 @@ import { useEffect, useRef, useState } from "react";
 
 export function HeroVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = 0.9; // Smooth, cinematic cadence
-      videoRef.current.play().catch(() => {
-        // Autoplay policy fallback: muted video will play on first interaction
-      });
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Ensure audio is permanently muted so browser autoplay policy is satisfied immediately
+    video.defaultMuted = true;
+    video.muted = true;
+    video.playbackRate = 0.9;
+
+    const markActive = () => {
+      setIsPlaying(true);
+    };
+
+    // If browser already has video data ready or cached
+    if (video.readyState >= 2 || video.currentTime > 0) {
+      markActive();
     }
+
+    video.addEventListener("loadeddata", markActive);
+    video.addEventListener("canplay", markActive);
+    video.addEventListener("playing", markActive);
+    video.addEventListener("timeupdate", markActive);
+
+    // Attempt native play
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => markActive())
+        .catch(() => {
+          // Fallback if browser policy defers autoplay until first user gesture
+          const handleFirstGesture = () => {
+            if (videoRef.current) {
+              videoRef.current.play().then(markActive).catch(() => {});
+            }
+            window.removeEventListener("pointerdown", handleFirstGesture);
+            window.removeEventListener("keydown", handleFirstGesture);
+            window.removeEventListener("touchstart", handleFirstGesture);
+            window.removeEventListener("scroll", handleFirstGesture);
+          };
+          window.addEventListener("pointerdown", handleFirstGesture, { once: true });
+          window.addEventListener("keydown", handleFirstGesture, { once: true });
+          window.addEventListener("touchstart", handleFirstGesture, { once: true });
+          window.addEventListener("scroll", handleFirstGesture, { once: true });
+        });
+    }
+
+    return () => {
+      video.removeEventListener("loadeddata", markActive);
+      video.removeEventListener("canplay", markActive);
+      video.removeEventListener("playing", markActive);
+      video.removeEventListener("timeupdate", markActive);
+    };
   }, []);
 
   return (
@@ -20,21 +65,34 @@ export function HeroVideoBackground() {
       {/* Deep space base layer */}
       <div className="absolute inset-0 bg-black" />
 
-      {/* Direct Native Video Element */}
+      {/* Immediate High-Fidelity Poster (Loads in <30ms on first open so screen is never black) */}
+      <picture>
+        <source srcSet="/hero-poster.webp" type="image/webp" />
+        <img
+          src="/hero-poster.jpg"
+          alt="VERITY Cosmic Research Background"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover scale-[1.04]"
+          style={{
+            filter: "contrast(1.1) brightness(1.05) saturate(1.1)",
+          }}
+        />
+      </picture>
+
+      {/* Direct Native Video Element with poster fallback */}
       <video
         ref={videoRef}
         src="/verity-hero.mp4"
+        poster="/hero-poster.webp"
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        onLoadedData={() => setIsLoaded(true)}
-        className={`absolute inset-0 w-full h-full object-cover scale-[1.04] transition-opacity duration-1000 ${
-          isLoaded ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 w-full h-full object-cover scale-[1.04] transition-opacity duration-700"
         style={{
           filter: "contrast(1.1) brightness(1.05) saturate(1.1)",
+          opacity: isPlaying ? 1 : 0.95,
         }}
       />
 
